@@ -1,0 +1,30 @@
+ktor:
+  application:
+    modules:
+      - com.example.ApplicationKt.module
+  deployment:
+    port: 8080
+jwt:
+  domain: "https://jwt-provider-domain/"
+  audience: "jwt-audience"
+  realm: "ktor sample app"
+
+postgres:
+  url: "jdbc:postgresql://localhost/library_postgres"
+  user: postgres
+  password: postgres
+
+mongo:
+  url: "jdbc:postgresql://localhost/library_postgres"
+  user: postgres
+  password: postgres
+
+
+db:
+  mongo:
+    user: mongo
+    password: mongo
+    host: localhost
+    port: 27018
+    database:
+      name: library
