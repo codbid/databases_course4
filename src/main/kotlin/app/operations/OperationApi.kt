@@ -8,6 +8,7 @@ import com.example.app.operations.DTO.FineUpdateStatusRequest
 import com.example.app.operations.DTO.LoanCreateRequest
 import com.example.app.operations.DTO.LoanUpdateRequest
 import com.example.app.operations.DTO.ReservationCreateRequest
+import com.example.app.operations.DTO.ReturnCreateRequest
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
@@ -86,19 +87,19 @@ fun Route.operations() {
 
     //
 
-    post("/fines") {
-        val request = call.receive<FineCreateRequest>()
-        call.respond(OperationService.createFine(request))
+    post("/returns") {
+        val request = call.receive<ReturnCreateRequest>()
+        call.respond(OperationService.createReturn(request))
     }
 
-    get("/fines/{id}") {
+    get("/returns/{id}") {
         val id = call.parameters["id"]!!.toLong()
-        call.respond(OperationService.getFine(id))
+        call.respond(OperationService.getReturn(id))
     }
 
-    delete("/fines/{id}") {
+    delete("/returns/{id}") {
         val id = call.parameters["id"]!!.toLong()
-        OperationService.deleteFine(id)
+        OperationService.deleteReturn(id)
         call.respondText { "OK" }
     }
 
