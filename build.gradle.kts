@@ -12,22 +12,27 @@ plugins {
 }
 
 group = "com.example"
-version = "0.0.1"
+    version = "0.0.1"
 
-application {
-    mainClass = "io.ktor.server.netty.EngineMain"
-}
+    application {
+        mainClass = "io.ktor.server.netty.EngineMain"
+    }
+
+    repositories {
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
 
 dependencies {
     implementation("io.ktor:ktor-server-cors")
     implementation("io.ktor:ktor-server-core")
+    implementation("io.ktor:ktor-server-openapi")
     implementation("io.ktor:ktor-server-swagger")
     implementation("io.ktor:ktor-server-auth")
     implementation("io.ktor:ktor-server-auth-jwt")
     implementation("io.ktor:ktor-server-content-negotiation")
     implementation("io.ktor:ktor-serialization-kotlinx-json")
-    implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
-    implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
+    implementation("org.jetbrains.exposed:exposed:0.17.13")
     implementation("com.h2database:h2:$h2_version")
     implementation("org.postgresql:postgresql:$postgres_version")
     implementation("org.mongodb:mongodb-driver-core:$mongo_version")
@@ -36,6 +41,13 @@ dependencies {
     implementation("io.ktor:ktor-server-netty")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-config-yaml")
+    implementation("org.flywaydb:flyway-core:10.17.0")
+    implementation("com.zaxxer:HikariCP:5.1.0")
+    implementation("org.flywaydb:flyway-database-postgresql:10.21.0")
+    implementation("io.ktor:ktor-server-content-negotiation-jvm:2.3.12")
+    implementation("io.ktor:ktor-serialization-jackson-jvm:2.3.12")
+    implementation("dev.forst:ktor-openapi-generator:0.6.1")
+
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }

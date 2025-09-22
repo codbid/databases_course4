@@ -9,18 +9,13 @@ jwt:
   audience: "jwt-audience"
   realm: "ktor sample app"
 
-postgres:
-  url: "jdbc:postgresql://localhost/library_postgres"
-  user: postgres
-  password: postgres
-
-mongo:
-  url: "jdbc:postgresql://localhost/library_postgres"
-  user: postgres
-  password: postgres
-
-
 db:
+  postgres:
+    jdbcDriver: "org.postgresql.Driver"
+    url: "jdbc:postgresql://localhost:5435/postgres"
+    user: postgres
+    password: postgres
+    maxPoolSize: 5
   mongo:
     user: mongo
     password: mongo
@@ -28,3 +23,6 @@ db:
     port: 27018
     database:
       name: library
+
+flyway:
+  clean: false
