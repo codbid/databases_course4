@@ -1,23 +1,903 @@
-openapi: "3.0.3"
+openapi: 3.0.3
 info:
-  title: "Application API"
-  description: "Application API"
-  version: "1.0.0"
-servers:
-  - url: "http://0.0.0.0:8080"
+  title: Library API
+  version: 1.0.0
+
 paths:
-  /:
-    get:
-      description: "Hello World!"
+  /api/clients:
+    post:
+      tags:
+        - Users
+      summary: Create client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRegisterRequest'
       responses:
-        "200":
-          description: "OK"
+        '200':
+          description: Client created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'
+
+  /api/clients/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get client by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'
+    patch:
+      tags:
+        - Users
+      summary: Update client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientUpdateRequest'
+      responses:
+        '200':
+          description: Client updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'
+
+    delete:
+      tags:
+        - Users
+      summary: Delete client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
           content:
             text/plain:
               schema:
-                type: "string"
-              examples:
-                Example#1:
-                  value: "Hello World!"
+                type: string
+
+  /api/offices:
+    post:
+      tags:
+        - Offices
+      summary: Create office
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfficeCreateRequest'
+      responses:
+        '200':
+          description: Office created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficeResponse'
+
+  /api/offices/{id}:
+    get:
+      tags:
+        - Offices
+      summary: Get office by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Office
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficeResponse'
+    patch:
+      tags:
+        - Offices
+      summary: Update office
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfficeUpdateRequest'
+      responses:
+        '200':
+          description: Office updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficeResponse'
+
+    delete:
+      tags:
+        - Offices
+      summary: Delete office
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/books:
+    post:
+      tags:
+        - Books
+      summary: Create book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCreateRequest'
+      responses:
+        '200':
+          description: Book created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+
+  /api/books/{id}:
+    get:
+      tags:
+        - Books
+      summary: Get book by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Book
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+
+    patch:
+      tags:
+        - Books
+      summary: Update book
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookUpdateRequest'
+      responses:
+        '200':
+          description: Book updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+
+    delete:
+      tags:
+        - Books
+      summary: Delete book
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/books/{id}/copies:
+    post:
+      tags:
+        - Books
+      summary: Create book copy by book id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCopyCreateRequest'
+      responses:
+        '200':
+          description: Book copy created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookCopyResponse'
+
+  /api/books/copies/{copyID}:
+    get:
+      tags:
+        - Books
+      summary: Get book copy by id
+      parameters:
+        - name: copyID
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Book copy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookCopyResponse'
+
+    patch:
+      tags:
+        - Books
+      summary: Update book copy
+      parameters:
+        - name: copyID
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCopyUpdateRequest'
+      responses:
+        '200':
+          description: Book copy updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookCopyResponse'
+
+    delete:
+      tags:
+        - Books
+      summary: Delete book copy
+      parameters:
+        - name: copyID
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/fines:
+    post:
+      tags:
+        - Operations
+      summary: Create fine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FineCreateRequest'
+      responses:
+        '200':
+          description: Fine created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FineResponse'
+
+  /api/fines/{id}:
+    get:
+      tags:
+        - Operations
+      summary: Get fine by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Fine
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FineResponse'
+    patch:
+      tags:
+        - Operations
+      summary: Update fine status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FineUpdateStatusRequest'
+      responses:
+        '200':
+          description: Fine updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FineResponse'
+    delete:
+      tags:
+        - Operations
+      summary: Delete fine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/loans:
+    post:
+      tags:
+        - Operations
+      summary: Create loan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanCreateRequest'
+      responses:
+        '200':
+          description: Loan created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+
+  /api/loans/{id}:
+    get:
+      tags:
+        - Operations
+      summary: Get loan by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Loan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+
+    patch:
+      tags:
+        - Operations
+      summary: Update loan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanUpdateRequest'
+      responses:
+        '200':
+          description: Loan updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+    delete:
+      tags:
+        - Operations
+      summary: Delete loan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/reservations:
+    post:
+      tags:
+        - Operations
+      summary: Create reservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationCreateRequest'
+      responses:
+        '200':
+          description: Reservation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+
+  /api/reservations/{id}:
+    get:
+      tags:
+        - Operations
+      summary: Get reservation by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Reservation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+    delete:
+      tags:
+        - Operations
+      summary: Delete reservation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/returns:
+    post:
+      tags:
+        - Operations
+      summary: Create return
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnCreateRequest'
+      responses:
+        '200':
+          description: Return created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnResponse'
+
+  /api/returns/{id}:
+    get:
+      tags:
+        - Operations
+      summary: Get return by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Return
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnResponse'
+    delete:
+      tags:
+        - Operations
+      summary: Delete return
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
 components:
-  schemas: { }
+  schemas:
+    ClientRegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        city:
+          type: string
+      required: [name, email, password, city]
+
+    ClientUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        city:
+          type: string
+
+    ClientResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        city:
+          type: string
+
+
+    OfficeCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        workingTime:
+          type: string
+      required: [name, address, workingTime]
+
+    OfficeUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        workingTime:
+          type: string
+
+    OfficeResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        address:
+          type: string
+        workingTime:
+          type: string
+
+
+    BookCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        genre:
+          type: string
+        year:
+          type: integer
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        isbnNumber:
+          type: string
+      required: [title, author, year, isbnNumber]
+
+    BookUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        genre:
+          type: string
+        year:
+          type: integer
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        isbnNumber:
+          type: string
+
+    BookResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        author:
+          type: string
+        genre:
+          type: string
+        year:
+          type: integer
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        isbnNumber:
+          type: string
+
+
+    BookCopyCreateRequest:
+      type: object
+      properties:
+        officeID:
+          type: integer
+          format: int64
+      required: [officeID]
+
+    BookCopyUpdateRequest:
+      type: object
+      properties:
+        officeID:
+          type: integer
+          format: int64
+        status:
+          type: string
+
+    BookCopyResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        bookID:
+          type: integer
+          format: int64
+        officeID:
+          type: integer
+          format: int64
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    FineCreateRequest:
+      type: object
+      properties:
+        loanID:
+          type: integer
+          format: int64
+        amount:
+          type: number
+          format: double
+      required: [loanId, amount]
+
+    FineUpdateStatusRequest:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    FineResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        loanID:
+          type: integer
+          format: int64
+        amount:
+          type: number
+          format: double
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    LoanCreateRequest:
+      type: object
+      properties:
+        clientID:
+          type: integer
+          format: int64
+        bookCopyID:
+          type: integer
+          format: int64
+        durationInDays:
+          type: integer
+      required: [clientID, bookCopyID, durationInDays]
+
+    LoanUpdateRequest:
+      type: object
+      properties:
+        status:
+          type: string
+        durationInDays:
+          type: integer
+
+    LoanResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        clientID:
+          type: integer
+          format: int64
+        bookCopyID:
+          type: integer
+          format: int64
+        status:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+
+    ReservationCreateRequest:
+      type: object
+      properties:
+        clientID:
+          type: integer
+          format: int64
+        bookCopyID:
+          type: integer
+          format: int64
+        durationInDays:
+          type: integer
+
+    ReservationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        clientID:
+          type: integer
+          format: int64
+        bookCopyID:
+          type: integer
+          format: int64
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+
+    ReturnCreateRequest:
+      type: object
+      properties:
+        loanID:
+          type: integer
+          format: int64
+
+    ReturnResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        loanID:
+          type: integer
+          format: int64
+        returnDate:
+          type: string
+          format: date-time
