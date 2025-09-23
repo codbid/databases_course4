@@ -42,9 +42,8 @@ object BookService {
 
         transaction {
             BookLinkEntity.new { mongoID = mongoId.toString() }
+            return@transaction doc.toBookResponse()
         }
-
-        return@withContext doc.toBookResponse()
     }
 
     suspend fun getBook(bookID: Long): BookResponse = withContext(Dispatchers.IO) {

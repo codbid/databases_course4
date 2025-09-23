@@ -79,9 +79,9 @@ data class BookCopyResponse(
 )
 
 fun BookCopyEntity.toResponse() = BookCopyResponse(
-    id = this.id.value,
-    bookID = this.bookLink.id.value,
-    officeID = this.office.id.value,
-    status = this.status.toString(),
-    createdAt = this.createdAt.toString()
+    id = id.value,
+    bookID = bookLink.id.value,
+    officeID = office.id.value,
+    status = status.toString(),
+    createdAt = createdAt.toString()
 )

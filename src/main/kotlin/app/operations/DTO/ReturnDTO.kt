@@ -13,7 +13,7 @@ data class ReturnResponse(
 )
 
 fun ReturnEntity.toResponse() = ReturnResponse(
-    id = this.id.value,
-    loanID = this.loan.id.value,
-    returnDate = this.returnDate.toString()
+    id = id.value,
+    loanID = loan.id.value,
+    returnDate = returnDate.toString()
 )

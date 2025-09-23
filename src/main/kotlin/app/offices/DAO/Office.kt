@@ -9,9 +9,8 @@ import org.jetbrains.exposed.dao.LongIdTable
 
 object OfficesTable : LongIdTable("offices") {
     val name = varchar("name", 255)
-    val address = varchar("city", 255)
+    val address = varchar("address", 255)
     val workingTime = varchar("working_time", 255)
-    val createdAt = datetime("created_at")
 }
 
 class OfficeEntity(id: EntityID<Long>) : LongEntity(id) {
@@ -19,7 +18,4 @@ class OfficeEntity(id: EntityID<Long>) : LongEntity(id) {
     var name by OfficesTable.name
     var address by OfficesTable.address
     var workingTime by OfficesTable.workingTime
-    var createdAt by OfficesTable.createdAt
-
-    var copies by BookCopyEntity referencedOn BookCopiesTable.office
 }

@@ -24,12 +24,12 @@ data class LoanResponse(
 )
 
 fun LoanEntity.toResponse() = LoanResponse(
-    id =this.id.value,
-    bookCopyID = this.bookCopy.id.value,
-    clientID = this.client.id.value,
-    status = this.status,
-    startDate = this.startDate.toString(),
-    endDate = this.startDate.toString()
+    id = id.value,
+    bookCopyID = bookCopy.id.value,
+    clientID = client.id.value,
+    status = status,
+    startDate = startDate.toString(),
+    endDate = endDate.toString()
 )
 
 

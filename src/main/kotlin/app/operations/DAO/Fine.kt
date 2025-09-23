@@ -16,7 +16,7 @@ object FinesTable : LongIdTable("fines") {
 class FineEntity(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<FineEntity>(FinesTable)
 
-    var loan by LoanEntity referencedOn ReturnsTable.loan
+    var loan by LoanEntity referencedOn FinesTable.loan
     var amount by FinesTable.amount
     var status by FinesTable.status
     var createdAt by FinesTable.createdAt

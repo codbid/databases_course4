@@ -82,7 +82,7 @@ create table returns
 (
     id          serial primary key,
     loan_id      int not null,
-    returned_at    timestamp without time zone not null,
+    returned_at    timestamp without time zone not null default now(),
     constraint fk_loan foreign key (loan_id)
         references loans (id)
         on delete cascade
