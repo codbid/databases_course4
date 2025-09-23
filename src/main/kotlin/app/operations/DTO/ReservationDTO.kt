@@ -8,10 +8,18 @@ data class ReservationCreateRequest(
     val durationInDays: Int
 )
 
-data class ReservationResponse(val entity: ReservationEntity) {
-    val id = entity.id
-    val bookCopyID = entity.bookCopy.id.value
-    val clientID = entity.client.id.value
-    val startDate = entity.startDate
-    val endDate = entity.endDate
-}
+data class ReservationResponse(
+    val id: Long,
+    val clientID: Long,
+    val bookCopyID: Long,
+    val startDate: String,
+    val endDate: String
+)
+
+fun ReservationEntity.toResponse(): ReservationResponse = ReservationResponse(
+    id = id.value,
+    clientID = client.id.value,
+    bookCopyID = bookCopy.id.value,
+    startDate = startDate.toString(),
+    endDate = endDate.toString()
+)

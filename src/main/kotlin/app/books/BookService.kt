@@ -10,6 +10,7 @@ import com.example.app.books.DTO.BookCreateRequest
 import com.example.app.books.DTO.BookResponse
 import com.example.app.books.DTO.BookUpdateRequest
 import com.example.app.books.DTO.toBookResponse
+import com.example.app.books.DTO.toResponse
 import com.example.app.offices.DAO.OfficeEntity
 import com.example.config.DatabaseFactory
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +41,7 @@ object BookService {
             ?: throw IllegalStateException("Mongo _id not generated")
 
         transaction {
-            val entity = BookLinkEntity.new { mongoID = mongoId.toString() }
+            BookLinkEntity.new { mongoID = mongoId.toString() }
         }
 
         return@withContext doc.toBookResponse()
@@ -102,34 +103,36 @@ object BookService {
             val officeEntity = OfficeEntity.findById(request.officeID) ?: throw Exception("Office not found")
 
             val entity = BookCopyEntity.new {
-                bookLink = bookLinkEntity   // тут нужен именно Entity
+                bookLink = bookLinkEntity
                 office = officeEntity
                 status = request.status
             }
 
-            return@transaction BookCopyResponse(entity)
+            return@transaction entity.toResponse()
         }
     }
 
-    suspend fun getBookCopy(id: Long): BookCopyResponse = withContext(Dispatchers.IO) {
+    suspend fun getBookCopy(copyID: Long): BookCopyResponse = withContext(Dispatchers.IO) {
         transaction {
-            val entity = BookCopyEntity.findById(id) ?: throw Exception("BookCopy not found")
-            return@transaction BookCopyResponse(entity)
+            val entity = BookCopyEntity.findById(copyID) ?: throw Exception("BookCopy not found")
+
+            return@transaction entity.toResponse()
         }
     }
 
-    suspend fun updateBookCopy(id: Long, request: BookCopyUpdateRequest): BookCopyResponse = withContext(Dispatchers.IO) {
+    suspend fun updateBookCopy(copyID: Long, request: BookCopyUpdateRequest): BookCopyResponse = withContext(Dispatchers.IO) {
         transaction {
-            val entity = BookCopyEntity.findById(id) ?: throw Exception("BookCopy not found")
+            val entity = BookCopyEntity.findById(copyID) ?: throw Exception("BookCopy not found")
             request.officeID?.let { entity.office = OfficeEntity.findById(it) ?: throw Exception("Office not found") }
             request.status?.let { entity.status = it }
-            return@transaction BookCopyResponse(entity)
+
+            return@transaction entity.toResponse()
         }
     }
 
-    suspend fun deleteBookCopy(id: Long) = withContext(Dispatchers.IO) {
+    suspend fun deleteBookCopy(copyID: Long) = withContext(Dispatchers.IO) {
         transaction {
-            val entity = BookCopyEntity.findById(id) ?: throw Exception("BookCopy not found")
+            val entity = BookCopyEntity.findById(copyID) ?: throw Exception("BookCopy not found")
             entity.delete()
         }
     }

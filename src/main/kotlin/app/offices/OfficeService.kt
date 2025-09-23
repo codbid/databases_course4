@@ -4,7 +4,7 @@ import com.example.app.offices.DAO.OfficeEntity
 import com.example.app.offices.DTO.OfficeCreateRequest
 import com.example.app.offices.DTO.OfficeResponse
 import com.example.app.offices.DTO.OfficeUpdateRequest
-import com.example.app.users.clients.DAO.ClientEntity
+import com.example.app.offices.DTO.toResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -18,19 +18,21 @@ object OfficeService {
                 address = request.address
                 workingTime = request.workingTime
             }
-            OfficeResponse(office)
+
+            return@transaction office.toResponse()
         }
     }
 
     suspend fun getOffice(id: Long): OfficeResponse = withContext(Dispatchers.IO) {
         transaction {
             val entity = OfficeEntity.findById(id) ?: throw Exception("Office not found")
-            OfficeResponse(entity)
+
+            return@transaction entity.toResponse()
         }
     }
 
     suspend fun getAll(): List<OfficeResponse> = withContext(Dispatchers.IO) {
-        transaction { OfficeEntity.all().map { entity -> OfficeResponse(entity) }.toList() }
+        transaction { return@transaction OfficeEntity.all().map { entity -> entity.toResponse() }.toList() }
     }
 
     suspend fun updateOffice(id: Long, request: OfficeUpdateRequest): OfficeResponse = withContext(Dispatchers.IO) {
@@ -39,14 +41,12 @@ object OfficeService {
             request.name?.let { entity.name = it }
             request.address?.let { entity.address = it }
             request.workingTime?.let { entity.workingTime = it }
-            OfficeResponse(entity)
+
+            return@transaction entity.toResponse()
         }
     }
 
     suspend fun deleteOffice(id: Long) = withContext(Dispatchers.IO) {
-        transaction {
-            val entity = OfficeEntity.findById(id) ?: throw Exception("Office not found")
-            OfficeEntity.findById(id)?.delete()
-        }
+        transaction { return@transaction OfficeEntity.findById(id)?.delete() }
     }
 }

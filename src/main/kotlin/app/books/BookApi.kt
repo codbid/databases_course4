@@ -44,20 +44,20 @@ fun Route.books() {
         call.respond(BookService.createBookCopy(id, office))
     }
 
-    get("/books/{id}/copies") {
-        val id = call.parameters["id"]!!.toLong()
-        call.respond(BookService.getBookCopy(id))
+    get("/books/copies/{copyID}") {
+        val copyID = call.parameters["copyID"]!!.toLong()
+        call.respond(BookService.getBookCopy(copyID))
     }
 
-    patch("/books/{id}/copies") {
+    patch("/books/copies/{copyID}") {
         val request = call.receive<BookCopyUpdateRequest>()
-        val id = call.parameters["id"]!!.toLong()
-        call.respond(BookService.updateBookCopy(id, request))
+        val copyID = call.parameters["copyID"]!!.toLong()
+        call.respond(BookService.updateBookCopy(copyID, request))
     }
 
-    delete("/books/{id}/copies") {
-        val id = call.parameters["id"]!!.toLong()
-        BookService.deleteBookCopy(id)
+    delete("/books/copies/{copyID}") {
+        val copyID = call.parameters["copyID"]!!.toLong()
+        BookService.deleteBookCopy(copyID)
         call.respondText { "OK" }
     }
 }

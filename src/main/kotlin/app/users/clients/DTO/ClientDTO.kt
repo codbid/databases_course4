@@ -17,11 +17,17 @@ data class ClientUpdateRequest(
 )
 
 data class ClientResponse(
-    val client: ClientEntity
-) {
-    val id: Long = client.id.value
-    val name: String = client.name
-    val email: String = client.email
-    val city: String = client.city
-    val createdAt: String = client.createdAt.toString()
-}
+    val id: Long,
+    val name: String,
+    val email: String,
+    val city: String,
+    val createdAt: String
+)
+
+fun ClientEntity.toResponse() = ClientResponse(
+    id = id.value,
+    name = name,
+    email = email,
+    city = city,
+    createdAt = createdAt.toString()
+)

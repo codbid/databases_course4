@@ -2,10 +2,10 @@ package com.example.app.books.DTO
 
 import com.example.app.books.BookCopyStatus
 import com.example.app.books.DAO.BookCopyEntity
-import com.example.app.books.DAO.BookLinkEntity
 import com.example.app.books.DAO.BookLinksTable
 import org.bson.Document
 import org.jetbrains.exposed.sql.select
+import org.joda.time.DateTime
 
 data class BookCreateRequest(
     val title: String,
@@ -70,10 +70,18 @@ data class BookCopyUpdateRequest(
     val status: BookCopyStatus? = null
 )
 
-data class BookCopyResponse(val entity: BookCopyEntity) {
-    val id = entity.id.value
-    val bookID = entity.bookLink.id.value
-    val officeID = entity.office.id.value
-    val status = entity.status
-    val createdAt = entity.createdAt
-}
+data class BookCopyResponse(
+    val id: Long,
+    val bookID: Long,
+    val officeID: Long,
+    val status: String,
+    val createdAt: String
+)
+
+fun BookCopyEntity.toResponse() = BookCopyResponse(
+    id = this.id.value,
+    bookID = this.bookLink.id.value,
+    officeID = this.office.id.value,
+    status = this.status.toString(),
+    createdAt = this.createdAt.toString()
+)

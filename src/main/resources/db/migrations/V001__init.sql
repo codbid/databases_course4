@@ -1,6 +1,6 @@
 create table clients
 (
-    id          int                         not null primary key,
+    id          serial primary key,
     name        varchar(255)                not null,
     email       varchar(255)                not null unique,
     city        varchar(255)                not null,
@@ -10,7 +10,7 @@ create table clients
 
 create table users_staff
 (
-    id          int                         not null primary key,
+    id          serial primary key,
     name        varchar(255)                not null,
     email       varchar(255)                not null unique,
     city        varchar(255)                not null,
@@ -20,7 +20,7 @@ create table users_staff
 
 create table offices
 (
-    id           int          not null primary key,
+    id          serial primary key,
     name         varchar(255) not null,
     address      varchar(255) not null,
     working_time varchar(255) not null
@@ -28,13 +28,13 @@ create table offices
 
 create table book_link
 (
-    id          int          not null primary key,
+    id          serial primary key,
     mongo_id    varchar(255) not null unique
 );
 
 create table book_copies
 (
-    id           int          not null primary key,
+    id          serial primary key,
     book_link_id int          not null,
     office_id    int          not null,
     status       varchar(255) not null,
@@ -49,7 +49,7 @@ create table book_copies
 
 create table reservations
 (
-    id           int not null primary key,
+    id          serial primary key,
     book_copy_id int not null,
     client_id    int not null,
     starts_at    timestamp without time zone not null,
@@ -64,7 +64,7 @@ create table reservations
 
 create table loans
 (
-    id           int not null primary key,
+    id          serial primary key,
     book_copy_id int not null,
     client_id     int not null,
     status       varchar(255) not null,
@@ -80,7 +80,7 @@ create table loans
 
 create table returns
 (
-    id           int not null primary key,
+    id          serial primary key,
     loan_id      int not null,
     returned_at    timestamp without time zone not null,
     constraint fk_loan foreign key (loan_id)
@@ -90,7 +90,7 @@ create table returns
 
 create table fines
 (
-    id         int          not null primary key,
+    id          serial primary key,
     loan_id    int          not null,
     amount     numeric(5,2)          not null,
     status     varchar(255) not null,

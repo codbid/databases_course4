@@ -13,10 +13,18 @@ data class FineUpdateStatusRequest (
     val status: FineStatus
 )
 
-data class FineResponse (val entity: FineEntity) {
-    val id = entity.id.value
-    val loanID = entity.loan.id.value
-    val amount = entity.amount
-    val status = entity.status
-    val createdAt = entity.createdAt
-}
+data class FineResponse (
+    val id: Long,
+    val loanID: Long,
+    val amount: BigDecimal,
+    val status: FineStatus,
+    val createdAt: String
+)
+
+fun FineEntity.toResponse() = FineResponse(
+    id = id.value,
+    loanID = loan.id.value,
+    amount = amount,
+    status = status,
+    createdAt = createdAt.toString()
+)

@@ -11,10 +11,12 @@ import com.example.app.operations.DTO.FineUpdateStatusRequest
 import com.example.app.operations.DTO.LoanCreateRequest
 import com.example.app.operations.DTO.LoanResponse
 import com.example.app.operations.DTO.LoanUpdateRequest
+import com.example.app.operations.DTO.LoansCountGroupByOfficeResponse
 import com.example.app.operations.DTO.ReservationCreateRequest
 import com.example.app.operations.DTO.ReservationResponse
 import com.example.app.operations.DTO.ReturnCreateRequest
 import com.example.app.operations.DTO.ReturnResponse
+import com.example.app.operations.DTO.toResponse
 import com.example.app.users.clients.DAO.ClientEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,7 +34,7 @@ object OperationService {
                 status = FineStatus.PENDING
             }
 
-            return@transaction FineResponse(entity)
+            return@transaction entity.toResponse()
         }
     }
 
@@ -40,7 +42,7 @@ object OperationService {
         transaction {
             val entity = FineEntity.findById(id) ?: throw Exception("Fine not found")
 
-            return@transaction FineResponse(entity)
+            return@transaction entity.toResponse()
         }
     }
 
@@ -49,7 +51,7 @@ object OperationService {
             val entity = FineEntity.findById(id) ?: throw Exception("Fine not found")
             entity.status = request.status
 
-            return@transaction FineResponse(entity)
+            return@transaction entity.toResponse()
         }
     }
 
@@ -73,7 +75,7 @@ object OperationService {
                 endDate = DateTime.now().plusDays(request.durationInDays)
             }
 
-            return@transaction LoanResponse(entity)
+            return@transaction entity.toResponse()
         }
     }
 
@@ -81,7 +83,7 @@ object OperationService {
         transaction {
             val entity = LoanEntity.findById(id) ?: throw Exception("Loan not found")
 
-            return@transaction LoanResponse(entity)
+            return@transaction entity.toResponse()
         }
     }
 
@@ -94,7 +96,7 @@ object OperationService {
                 entity.endDate = DateTime.now().plusDays(it)
             }
 
-            return@transaction LoanResponse(entity)
+            return@transaction entity.toResponse()
         }
     }
 
@@ -117,7 +119,7 @@ object OperationService {
                 endDate = DateTime.now().plusDays(request.durationInDays)
             }
 
-            return@transaction ReservationResponse(entity)
+            return@transaction entity.toResponse()
         }
     }
 
@@ -125,7 +127,7 @@ object OperationService {
         transaction {
             val entity = ReservationEntity.findById(id) ?: throw Exception("Reservation not found")
 
-            return@transaction ReservationResponse(entity)
+            return@transaction entity.toResponse()
         }
     }
 
@@ -144,7 +146,7 @@ object OperationService {
                 loan = loanEntity
             }
 
-            return@transaction ReturnResponse(entity)
+            return@transaction entity.toResponse()
         }
     }
 
@@ -152,7 +154,7 @@ object OperationService {
         transaction {
             val entity = ReturnEntity.findById(id) ?: throw Exception("Return not found")
 
-            return@transaction ReturnResponse(entity)
+            return@transaction entity.toResponse()
         }
     }
 
@@ -160,6 +162,35 @@ object OperationService {
         transaction {
             val entity = ReturnEntity.findById(id) ?: throw Exception("Return not found")
             entity.delete()
+        }
+    }
+
+    suspend fun getLoansByPeriodGroupedByOffice(start: DateTime, end: DateTime): List<LoansCountGroupByOfficeResponse> = withContext(Dispatchers.IO) {
+        transaction {
+            val sql = """SELECT o.id AS office_id, o.name,
+                         COUNT(*) AS loans_count
+                         FROM loans l
+                         JOIN book_copies c ON c.id = l.book_copy_id
+                         JOIN offices o     ON o.id = c.office_id
+                         WHERE l.starts_at >= '$start' AND l.starts_at < '$end'
+                         GROUP BY o.id, o.name
+                         ORDER BY loans_count DESC;
+                            """.trimIndent()
+
+            val result = mutableListOf<LoansCountGroupByOfficeResponse>()
+
+            exec(sql) { rs ->
+                while (rs.next()) {
+                    result.add(
+                        LoansCountGroupByOfficeResponse(
+                            rs.getLong("office_id"),
+                            rs.getString("name"),
+                            rs.getInt("loans_count")
+                        ))
+                }
+            }
+
+            return@transaction result
         }
     }
 }

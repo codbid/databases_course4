@@ -2,12 +2,19 @@ package com.example.app.offices.DTO
 
 import com.example.app.offices.DAO.OfficeEntity
 
-data class OfficeResponse(val office: OfficeEntity) {
-    val id: Long = office.id.value
-    val name: String = office.name
-    val address: String = office.address
-    val workingTime: String = office.workingTime
-}
+data class OfficeResponse(
+    val id: Long,
+    val name: String,
+    val address: String,
+    val workingTime: String,
+)
+
+fun OfficeEntity.toResponse() = OfficeResponse(
+    id = id.value,
+    name = name,
+    address = address,
+    workingTime = workingTime
+)
 
 data class OfficeCreateRequest(
     val name: String,
