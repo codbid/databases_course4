@@ -595,6 +595,52 @@ paths:
               schema:
                 type: string
 
+  /api/loans/aggregateByOffices:
+    get:
+      tags:
+        - Loans
+      summary: Get aggregated loans by office for period
+      parameters:
+        - name: fromDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Start date of the period
+        - name: toDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: End date of the period
+      responses:
+        '200':
+          description: Aggregated loan counts per office
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanOfficeAggregate'
+
+
+  /api/loans/overdueAggregateByOffices:
+    get:
+      tags:
+        - Loans
+      summary: Get aggregated overdue loans by office for period
+      responses:
+        '200':
+          description: Aggregated overdue loan counts per office
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanOfficeAggregate'
+
 components:
   schemas:
     ClientRegisterRequest:
@@ -901,3 +947,14 @@ components:
         returnDate:
           type: string
           format: date-time
+
+    LoanOfficeAggregate:
+      type: object
+      properties:
+        officeID:
+          type: integer
+          format: int64
+        officeName:
+          type: string
+        loansCount:
+          type: integer

@@ -9,6 +9,8 @@ import com.example.app.books.DTO.BookCopyUpdateRequest
 import com.example.app.books.DTO.BookCreateRequest
 import com.example.app.books.DTO.BookResponse
 import com.example.app.books.DTO.BookUpdateRequest
+import com.example.app.books.DTO.BooksCountGroupByOfficeResponse
+import com.example.app.books.DTO.BooksCountGroupByOfficeResponseRanked
 import com.example.app.books.DTO.toBookResponse
 import com.example.app.books.DTO.toResponse
 import com.example.app.offices.DAO.OfficeEntity
@@ -133,6 +135,64 @@ object BookService {
         transaction {
             val entity = BookCopyEntity.findById(copyID) ?: throw Exception("BookCopy not found")
             entity.delete()
+        }
+    }
+
+    suspend fun getAvailableCopiesGroupedByOffice(): List<BooksCountGroupByOfficeResponse> = withContext(Dispatchers.IO) {
+        transaction { // agr 2 tab
+            val sql = """SELECT o.id AS office_id, o.name, COUNT(*) AS available_copies
+                        FROM book_copies c
+                        JOIN offices o ON o.id = c.office_id
+                        WHERE c.status = 'AVAILABLE'
+                        GROUP BY o.id, o.name
+                        ORDER BY available_copies DESC
+                    """.trimIndent()
+
+            val result = mutableListOf<BooksCountGroupByOfficeResponse>()
+
+            exec(sql) { rs ->
+                while (rs.next()) {
+                    result.add(
+                        BooksCountGroupByOfficeResponse(
+                            rs.getLong("office_id"),
+                            rs.getString("name"),
+                            rs.getInt("available_copies")
+                        )
+                    )
+                }
+            }
+
+            return@transaction result
+        }
+    }
+
+    suspend fun getRankingAvailableCopiesGroupedByOffice(): List<BooksCountGroupByOfficeResponseRanked> = withContext(Dispatchers.IO) {
+        transaction { // win 2 tab
+            val sql = """SELECT o.id, o.name,
+                               COUNT(*) FILTER (WHERE c.status = 'AVAILABLE') AS available_copies,
+                               RANK() OVER (ORDER BY COUNT(*) FILTER (WHERE c.status = 'AVAILABLE') DESC) AS rank_by_available
+                        FROM offices o
+                        LEFT JOIN book_copies c ON c.office_id = o.id
+                        GROUP BY o.id, o.name
+                        ORDER BY rank_by_available, o.name;
+                    """.trimIndent()
+
+            val result = mutableListOf<BooksCountGroupByOfficeResponseRanked>()
+
+            exec(sql) { rs ->
+                while (rs.next()) {
+                    result.add(
+                        BooksCountGroupByOfficeResponseRanked(
+                            rs.getLong("id"),
+                            rs.getString("name"),
+                            rs.getInt("available_copies"),
+                            rs.getInt("rank_by_available")
+                        )
+                    )
+                }
+            }
+
+            return@transaction result
         }
     }
 }

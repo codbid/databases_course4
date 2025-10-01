@@ -17,6 +17,7 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
+import org.joda.time.DateTime
 import kotlin.text.toLong
 
 fun Route.operations() {
@@ -48,6 +49,18 @@ fun Route.operations() {
     post("/loans") {
         val request = call.receive<LoanCreateRequest>()
         call.respond(OperationService.createLoan(request))
+    }
+
+    get("/loans/aggregateByOffices") {
+        val fromDate = call.request.queryParameters["fromDate"]?.let { DateTime.parse(it) }
+            ?: throw IllegalArgumentException("fromDate required")
+        val toDate = call.request.queryParameters["toDate"]?.let { DateTime.parse(it) }
+            ?: throw IllegalArgumentException("toDate required")
+        call.respond(OperationService.getLoansByPeriodGroupedByOffice(fromDate, toDate))
+    }
+
+    get("/loans/overdueAggregateByOffices") {
+        call.respond(OperationService.getOverdueActiveLoansGroupedByOffice())
     }
 
     get("/loans/{id}") {

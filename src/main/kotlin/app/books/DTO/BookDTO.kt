@@ -85,3 +85,16 @@ fun BookCopyEntity.toResponse() = BookCopyResponse(
     status = status.toString(),
     createdAt = createdAt.toString()
 )
+
+data class BooksCountGroupByOfficeResponse(
+    val officeID: Long,
+    val officeName: String,
+    val count: Int
+)
+
+data class BooksCountGroupByOfficeResponseRanked(
+    val officeID: Long,
+    val officeName: String,
+    val count: Int,
+    val rank: Int
+)

@@ -32,10 +32,20 @@ fun LoanEntity.toResponse() = LoanResponse(
     endDate = endDate.toString()
 )
 
-
-
 data class LoansCountGroupByOfficeResponse(
     val officeID: Long,
     val officeName: String,
     val count: Int
+)
+
+data class LoansCountGroupByClientResponse(
+    val clientID: Long,
+    val activeLoansCount: Int,
+    val rank: Int
+)
+
+data class LoansCountGroupByBookRankedResponse(
+    val officeID: Long,
+    val loansCount: Int,
+    val rank: Int
 )

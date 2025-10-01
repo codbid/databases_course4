@@ -11,6 +11,8 @@ import com.example.app.operations.DTO.FineUpdateStatusRequest
 import com.example.app.operations.DTO.LoanCreateRequest
 import com.example.app.operations.DTO.LoanResponse
 import com.example.app.operations.DTO.LoanUpdateRequest
+import com.example.app.operations.DTO.LoansCountGroupByBookRankedResponse
+import com.example.app.operations.DTO.LoansCountGroupByClientResponse
 import com.example.app.operations.DTO.LoansCountGroupByOfficeResponse
 import com.example.app.operations.DTO.ReservationCreateRequest
 import com.example.app.operations.DTO.ReservationResponse
@@ -70,7 +72,7 @@ object OperationService {
             val entity = LoanEntity.new {
                 bookCopy = bookCopyEntity
                 client = clientEntity
-                status = LoanStatus.LOANED
+                status = LoanStatus.ACTIVE
                 startDate = DateTime.now()
                 endDate = DateTime.now().plusDays(request.durationInDays)
             }
@@ -166,15 +168,16 @@ object OperationService {
     }
 
     suspend fun getLoansByPeriodGroupedByOffice(start: DateTime, end: DateTime): List<LoansCountGroupByOfficeResponse> = withContext(Dispatchers.IO) {
-        transaction {
-            val sql = """SELECT o.id AS office_id, o.name,
-                         COUNT(*) AS loans_count
-                         FROM loans l
-                         JOIN book_copies c ON c.id = l.book_copy_id
-                         JOIN offices o     ON o.id = c.office_id
-                         WHERE l.starts_at >= '$start' AND l.starts_at < '$end'
-                         GROUP BY o.id, o.name
-                         ORDER BY loans_count DESC;
+        transaction { // agr 3 tab
+            val sql = """SELECT o.id,
+                               MAX(o.name) AS office_name,
+                               COUNT(*) AS loans_count
+                        FROM loans l
+                        JOIN book_copies c ON c.id = l.book_copy_id
+                        JOIN offices o     ON o.id = c.office_id
+                        WHERE l.starts_at >= '$start' AND l.starts_at < '$end'
+                        GROUP BY o.id
+                        ORDER BY loans_count DESC;
                             """.trimIndent()
 
             val result = mutableListOf<LoansCountGroupByOfficeResponse>()
@@ -184,7 +187,7 @@ object OperationService {
                     result.add(
                         LoansCountGroupByOfficeResponse(
                             rs.getLong("office_id"),
-                            rs.getString("name"),
+                            rs.getString("office_name"),
                             rs.getInt("loans_count")
                         ))
                 }
@@ -193,4 +196,97 @@ object OperationService {
             return@transaction result
         }
     }
+
+    suspend fun getOverdueActiveLoansGroupedByOffice(): List<LoansCountGroupByOfficeResponse> = withContext(Dispatchers.IO) {
+        transaction { // agr 4 tab
+            val sql = """SELECT o.id AS office_id, o.name,
+                               MAX(o.name) AS office_name,
+                               COUNT(*) AS overdue_active
+                        FROM loans l
+                        LEFT JOIN returns r   ON r.loan_id = l.id
+                        JOIN book_copies c    ON c.id = l.book_copy_id
+                        JOIN offices o        ON o.id = c.office_id
+                        WHERE r.loan_id IS NULL
+                          AND l.ends_at < NOW()
+                        GROUP BY o.id
+                        ORDER BY overdue_active DESC
+                    """.trimIndent()
+
+            val result = mutableListOf<LoansCountGroupByOfficeResponse>()
+
+            exec(sql) { rs ->
+                while (rs.next()) {
+                    result.add(
+                        LoansCountGroupByOfficeResponse(
+                            rs.getLong("office_id"),
+                            rs.getString("office_name"),
+                            rs.getInt("overdue_active")
+                        ))
+                }
+            }
+
+            return@transaction result
+        }
+    }
+
+    suspend fun getRankingOfActiveLoansGroupedByClient(): List<LoansCountGroupByClientResponse> = withContext(Dispatchers.IO) {
+        transaction { // win 2 tab
+            val sql = """SELECT l.client_id,
+                            COUNT(*) FILTER (WHERE r.loan_id IS NULL) AS active_loans, 
+                            RANK() OVER (ORDER BY COUNT(*) FILTER (WHERE r.loan_id IS NULL) DESC) AS rank_by_active 
+                        FROM loans l 
+                        LEFT JOIN returns r ON r.loan_id = l.id 
+                        GROUP BY l.client_id;
+                    """.trimIndent()
+
+            val result = mutableListOf<LoansCountGroupByClientResponse>()
+
+            exec(sql) { rs ->
+                while (rs.next()) {
+                    result.add(
+                        LoansCountGroupByClientResponse(
+                            rs.getLong("client_id"),
+                            rs.getInt("active_loans"),
+                            rs.getInt("rank_by_active")
+                        ))
+                }
+            }
+
+            return@transaction result
+        }
+
+    }
+
+    suspend fun getRankingLoansGroupedByBook(): List<LoansCountGroupByBookRankedResponse> = withContext(Dispatchers.IO) {
+        transaction { // win 3 tab
+            val sql = """SELECT bl.id AS book_id,
+                               COUNT(l.id) AS loans_count,
+                               RANK() OVER () AS rank_by_popularity
+                        FROM book_link bl
+                        LEFT JOIN book_copies c ON c.book_link_id = bl.id
+                        LEFT JOIN loans l ON l.book_copy_id = c.id
+                        GROUP BY bl.id
+                        ORDER BY rank_by_popularity, bl.id;
+                    """.trimIndent()
+
+            val result = mutableListOf<LoansCountGroupByBookRankedResponse>()
+
+
+            exec(sql) { rs ->
+                while (rs.next()) {
+                    result.add(
+                        LoansCountGroupByBookRankedResponse(
+                            rs.getLong("book_id"),
+                            rs.getInt("loans_count"),
+                            rs.getInt("rank_by_popularity")
+                        ))
+                }
+            }
+
+            return@transaction result
+        }
+    }
+
+
+
 }
