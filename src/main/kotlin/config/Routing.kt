@@ -1,8 +1,10 @@
 package com.example.config
 
+import com.example.app.books.authors.authors
 import com.example.app.books.books
 import com.example.app.offices.offices
 import com.example.app.operations.operations
+import com.example.app.test.test
 import com.example.app.users.clients.clients
 import io.ktor.server.application.*
 import io.ktor.server.plugins.openapi.openAPI
@@ -21,6 +23,8 @@ fun Application.configureRouting() {
             offices()
             books()
             operations()
+            test()
+            authors()
         }
 
         openAPI(

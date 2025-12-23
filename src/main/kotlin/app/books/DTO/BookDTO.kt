@@ -9,7 +9,6 @@ import org.joda.time.DateTime
 
 data class BookCreateRequest(
     val title: String,
-    val author: String,
     val genre: String?,
     val year: Int,
     val description: String?,
@@ -19,7 +18,6 @@ data class BookCreateRequest(
 
 data class BookUpdateRequest(
     val title: String? = null,
-    val author: String? = null,
     val genre: String?? = null,
     val year: Int? = null,
     val description: String? = null,
@@ -30,7 +28,6 @@ data class BookUpdateRequest(
 data class BookResponse(
     val id: Long,
     val title: String,
-    val author: String,
     val genre: String?,
     val year: Int,
     val description: String?,
@@ -51,7 +48,6 @@ fun Document.toBookResponse(): BookResponse {
     return BookResponse(
         id = bookLinkID,
         title = this.getString("title"),
-        author = this.getString("author"),
         genre = this.getString("genre"),
         year = this.getInteger("year"),
         description = this.getString("description"),

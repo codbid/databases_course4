@@ -641,6 +641,113 @@ paths:
                 items:
                   $ref: '#/components/schemas/LoanOfficeAggregate'
 
+  /api/mongo-test/setup:
+    get:
+      tags:
+        - Test
+      summary: Setup mongo
+      responses:
+        '200':
+          description: Mongo setup result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  before_indexes:
+                    $ref: '#/components/schemas/MongoTest'
+                  after_indexes:
+                    $ref: '#/components/schemas/MongoTest'
+                  status:
+                    type: string
+                    example: Done! Data seeded and indexes created.
+
+  /api/authors:
+    post:
+      tags:
+        - Authors
+      summary: Create author (MongoDB)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+              example: "Robert C. Martin"
+      responses:
+        '200':
+          description: Author created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorResponse'
+
+    get:
+      tags:
+        - Authors
+      summary: Get all authors (MongoDB)
+      responses:
+        '200':
+          description: List of authors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuthorResponse'
+
+  /api/books/{bookId}/authors/{authorId}:
+    post:
+      tags:
+        - Books
+        - Authors
+      summary: Link author to book (M:N, MongoDB)
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: MongoDB book ObjectId
+        - name: authorId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: MongoDB author ObjectId
+      responses:
+        '200':
+          description: Author linked to book
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Author linked to book
+
+  /api/books/{mongoId}/authors:
+    get:
+      tags:
+        - Books
+        - Authors
+      summary: Get book with authors (MongoDB $lookup)
+      parameters:
+        - name: mongoId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: MongoDB book ObjectId
+      responses:
+        '200':
+          description: Book with authors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookWithAuthorResponse'
+
+
 components:
   schemas:
     ClientRegisterRequest:
@@ -724,8 +831,6 @@ components:
       properties:
         title:
           type: string
-        author:
-          type: string
         genre:
           type: string
         year:
@@ -744,8 +849,6 @@ components:
       type: object
       properties:
         title:
-          type: string
-        author:
           type: string
         genre:
           type: string
@@ -768,8 +871,6 @@ components:
           format: int64
         title:
           type: string
-        author:
-          type: string
         genre:
           type: string
         year:
@@ -782,7 +883,6 @@ components:
             type: string
         isbnNumber:
           type: string
-
 
     BookCopyCreateRequest:
       type: object
@@ -958,3 +1058,54 @@ components:
           type: string
         loansCount:
           type: integer
+
+    MongoTest:
+      type: object
+      properties:
+        before_indexes:
+          type: object
+          additionalProperties: true
+        after_indexes:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+
+    AuthorResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fabc1234567890abcd1234"
+        name:
+          type: string
+          example: "Robert C. Martin"
+
+    BookWithAuthorResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fabc1234567890abcd1111"
+        title:
+          type: string
+          example: "Clean Code"
+        year:
+          type: integer
+          example: 2008
+        tags:
+          type: array
+          items:
+            type: string
+        links:
+          type: object
+          properties:
+            bookId:
+              type: string
+            authorId:
+              type: string
+            role:
+              type: string
+              example: author
+        author:
+          $ref: '#/components/schemas/AuthorResponse'

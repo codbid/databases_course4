@@ -14,10 +14,19 @@ import com.example.app.books.DTO.BooksCountGroupByOfficeResponseRanked
 import com.example.app.books.DTO.toBookResponse
 import com.example.app.books.DTO.toResponse
 import com.example.app.offices.DAO.OfficeEntity
+import com.example.app.util.toApi
 import com.example.config.DatabaseFactory
+import com.mongodb.client.model.Accumulators.first
+import com.mongodb.client.model.Accumulators.push
+import com.mongodb.client.model.Aggregates.group
+import com.mongodb.client.model.Aggregates.lookup
+import com.mongodb.client.model.Aggregates.match
+import com.mongodb.client.model.Aggregates.unwind
+import com.mongodb.client.model.Filters.eq
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bson.Document
+import org.bson.types.ObjectId
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -29,7 +38,6 @@ object BookService {
         val doc = Document(
             mapOf(
                 "title" to request.title,
-                "author" to request.author,
                 "genre" to request.genre,
                 "year" to request.year,
                 "description" to request.description,
@@ -50,7 +58,8 @@ object BookService {
 
     suspend fun getBook(bookID: Long): BookResponse = withContext(Dispatchers.IO) {
         val mongoBookCollection = DatabaseFactory.mongo.getCollection("books")
-        val doc = mongoBookCollection.find(Document("mongoId", getMongoId(bookID))).firstOrNull()
+        val mongoId = ObjectId(getMongoId(bookID))
+        val doc = mongoBookCollection.find(Document("_id", mongoId)).firstOrNull()
         return@withContext doc?.toBookResponse() ?: throw Exception("Book not found")
     }
 
@@ -62,14 +71,14 @@ object BookService {
 
     suspend fun updateBook(bookID: Long, request: BookUpdateRequest): BookResponse = withContext(Dispatchers.IO) {
         val mongoBookCollection = DatabaseFactory.mongo.getCollection("books")
-        val mongoID = getMongoId(bookID)
+        val mongoId = ObjectId(getMongoId(bookID))
+
         mongoBookCollection.updateOne(
-            Document("mongoId", mongoID),
+            Document("_id", mongoId),
             Document(
                 "\$set", Document(
                     mapOf(
                         "title" to request.title,
-                        "author" to request.author,
                         "genre" to request.genre,
                         "year" to request.year,
                         "description" to request.description,
@@ -79,22 +88,26 @@ object BookService {
                 )
             )
         )
-        val doc = mongoBookCollection.find(Document("mongoId", mongoID)).firstOrNull()
+
+        val doc = mongoBookCollection.find(Document("_id", mongoId)).firstOrNull()
+
         return@withContext doc?.toBookResponse() ?: throw Exception("Error updating book")
     }
 
     suspend fun deleteBook(bookID: Long) = withContext(Dispatchers.IO) {
         val mongoBookCollection = DatabaseFactory.mongo.getCollection("books")
-        mongoBookCollection.deleteOne(Document("mongoId", getMongoId(bookID)))
+        val mongoId = ObjectId(getMongoId(bookID))
+        mongoBookCollection.deleteOne(Document("_id", mongoId))
     }
 
-    suspend private fun getMongoId(bookID: Long) = withContext(Dispatchers.IO) {
+    suspend private fun getMongoId(bookID: Long): String = withContext(Dispatchers.IO) {
         transaction {
-            val mongoId = BookLinksTable
+            BookLinksTable
                 .slice(BookLinksTable.mongoID)
                 .select { BookLinksTable.id eq bookID }
-                .limit(1)
-            return@transaction mongoId
+                .firstOrNull()
+                ?.get(BookLinksTable.mongoID)
+                ?: throw Exception("MongoID not found for book $bookID")
         }
     }
 
@@ -195,4 +208,66 @@ object BookService {
             return@transaction result
         }
     }
+
+    suspend fun linkBookAuthor(bookId: String, authorId: String) {
+        DatabaseFactory.mongo.getCollection("book_authors")
+            .insertOne(
+                Document("bookId", ObjectId(bookId))
+                    .append("authorId", ObjectId(authorId))
+                    .append("role", "author")
+            )
+    }
+
+    suspend fun getBookWithAuthors(bookMongoId: String): Map<String, Any?> =
+        withContext(Dispatchers.IO) {
+
+            val booksCol = DatabaseFactory.mongo.getCollection("books")
+
+            val pipeline = listOf(
+                match(eq("_id", ObjectId(bookMongoId))),
+
+                lookup(
+                    "book_authors",
+                    "_id",
+                    "bookId",
+                    "links"
+                ),
+
+                unwind("\$links"),
+
+                lookup(
+                    "authors",
+                    "links.authorId",
+                    "_id",
+                    "author"
+                ),
+
+                unwind("\$author"),
+
+                group(
+                    "\$_id",
+                    first("title", "\$title"),
+                    first("isbnNumber", "\$isbnNumber"),
+                    first("year", "\$year"),
+                    first("description", "\$description"),
+                    first("tags", "\$tags"),
+                    push(
+                        "authors",
+                        Document(
+                            mapOf(
+                                "_id" to "\$author._id",
+                                "name" to "\$author.name",
+                                "bio" to "\$author.bio"
+                            )
+                        )
+                    )
+                )
+            )
+
+            val result = booksCol.aggregate(pipeline).firstOrNull()
+                ?: throw NoSuchElementException("Book not found")
+
+            result.toApi()
+        }
+
 }
