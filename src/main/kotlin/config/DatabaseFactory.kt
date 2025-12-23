@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 object DatabaseFactory {
 
     private lateinit var appConfig: ApplicationConfig
-    private lateinit var mongoClient: MongoClient
+    lateinit var mongoClient: MongoClient
     lateinit var mongo: MongoDatabase
         private set
 

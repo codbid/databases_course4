@@ -74,4 +74,23 @@ fun Route.books() {
         val mongoId = call.parameters["mongoId"]!!
         call.respond(BookService.getBookWithAuthors(mongoId))
     }
+
+    get("/books/search") {
+        val includeTags = call.request.queryParameters.getAll("tag") ?: emptyList()
+        val excludeTags = call.request.queryParameters.getAll("excludeTag") ?: emptyList()
+        val genresOr = call.request.queryParameters.getAll("genre") ?: emptyList()
+        val yearFrom = call.request.queryParameters["yearFrom"]?.toInt()
+        val yearTo = call.request.queryParameters["yearTo"]?.toInt()
+
+        call.respond(
+            BookService.searchBooks(
+                includeTags = includeTags,
+                excludeTags = excludeTags,
+                genresOr = genresOr,
+                yearFrom = yearFrom,
+                yearTo = yearTo
+            )
+        )
+    }
+
 }

@@ -17,19 +17,27 @@ object MongoAssignmentService {
         linkCol.drop()
     }
 
-    suspend fun createIndexes() {
-        // Unique
-        booksCol.createIndex(Indexes.ascending("isbnNumber"), IndexOptions().unique(true))
-        // Text
-        booksCol.createIndex(Indexes.compoundIndex(Indexes.text("title"), Indexes.text("description")))
-        // Compound
-        linkCol.createIndex(Indexes.ascending("bookId", "authorId"))
-        // Array
-        booksCol.createIndex(Indexes.ascending("tags"))
-        // Partial
-        val partialOptions = IndexOptions().partialFilterExpression(Document("year", Document("\$gt", 2010)))
-        booksCol.createIndex(Indexes.ascending("year"), partialOptions)
+    fun createIndexes() {
+        val mongo = DatabaseFactory.mongo
+
+        val books = mongo.getCollection("books")
+        val authors = mongo.getCollection("authors")
+        val links = mongo.getCollection("book_authors")
+
+        books.createIndex(Indexes.ascending("isbnNumber"), IndexOptions().unique(true))
+        books.createIndex(Indexes.text("title"))
+        books.createIndex(Indexes.ascending("tags"))
+        books.createIndex(Indexes.ascending("tags", "year"))
+        books.createIndex(Indexes.ascending("year"), IndexOptions().partialFilterExpression(
+                Document("year", Document("\$gt", 2020))
+            )
+        )
+        authors.createIndex(Indexes.ascending("name"), IndexOptions().unique(true))
+        links.createIndex(Indexes.ascending("bookId", "authorId"), IndexOptions().unique(true))
+        links.createIndex(Indexes.ascending("bookId"))
+        links.createIndex(Indexes.ascending("authorId"))
     }
+
 
     suspend fun seedData() {
         val authorDocs = (1..80).map { i ->
