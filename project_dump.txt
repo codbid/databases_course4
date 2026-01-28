@@ -1,0 +1,1309 @@
+==================== FILE: ./project_dump.txt ====================
+==================== FILE: ./docker-compose.yaml ====================
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports: ["5435:5432"]
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+      - "-c"
+      - "max_wal_senders=10"
+      - "-c"
+      - "max_replication_slots=10"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  postgres_sub:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports: ["5436:5432"]
+    depends_on: [postgres]
+    volumes:
+      - postgres_sub_data:/var/lib/postgresql/data
+
+  pgbackups:
+    image: bash
+    volumes:
+      - ./backup.sh:/backup.sh
+      - ./dumps:/dumps
+    depends_on:
+      - postgres
+    entrypoint: [ "bash", "-lc", "while true; do /backup.sh; sleep 86400; done" ]
+
+  mongodb:
+    image: mongo:6
+    container_name: library_mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo
+      MONGO_INITDB_DATABASE: library
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  postgres_data:
+  mongo_data:
+  postgres_sub_data:
+
+
+==================== FILE: ./src/main/resources/application.yaml ====================
+ktor:
+  application:
+    modules:
+      - com.example.ApplicationKt.module
+  deployment:
+    port: 8080
+jwt:
+  domain: "https://jwt-provider-domain/"
+  audience: "jwt-audience"
+  realm: "ktor sample app"
+
+db:
+  postgres:
+    jdbcDriver: "org.postgresql.Driver"
+    url: "jdbc:postgresql://localhost:5435/postgres"
+    user: postgres
+    password: postgres
+    maxPoolSize: 5
+  mongo:
+    user: mongo
+    password: mongo
+    host: localhost
+    port: 27018
+    database:
+      name: library
+
+flyway:
+  clean: false
+
+==================== FILE: ./src/main/resources/db/migrations/V001__init.sql ====================
+create table clients
+(
+    id         serial primary key,
+    name       varchar(255)                not null,
+    email      varchar(255)                not null unique,
+    city       varchar(255)                not null,
+    password   text                        not null,
+    created_at timestamp without time zone not null default now()
+);
+
+create table users_staff
+(
+    id         serial primary key,
+    name       varchar(255)                not null,
+    email      varchar(255)                not null unique,
+    city       varchar(255)                not null,
+    password   text                        not null,
+    created_at timestamp without time zone not null default now()
+);
+
+create table offices
+(
+    id           serial primary key,
+    name         varchar(255) not null,
+    address      varchar(255) not null,
+    working_time varchar(255) not null
+);
+
+create table book_link
+(
+    id       serial primary key,
+    mongo_id varchar(255) not null unique
+);
+
+create table book_copies
+(
+    id           serial primary key,
+    book_link_id int                         not null,
+    office_id    int                         not null,
+    status       varchar(255)                not null,
+    created_at   timestamp without time zone not null default now(),
+    constraint fk_book_link foreign key (book_link_id)
+        references book_link (id)
+        on delete cascade,
+    constraint fk_office foreign key (office_id)
+        references offices (id)
+        on delete restrict
+);
+
+create table reservations
+(
+    id           serial primary key,
+    book_copy_id int                         not null,
+    client_id    int                         not null,
+    starts_at    timestamp without time zone not null,
+    ends_at      timestamp without time zone not null,
+    constraint fk_client foreign key (client_id)
+        references clients (id)
+        on delete restrict,
+    constraint fk_book_copy foreign key (book_copy_id)
+        references book_copies (id)
+        on delete cascade
+);
+
+create table loans
+(
+    id           serial primary key,
+    book_copy_id int                         not null,
+    client_id    int                         not null,
+    status       varchar(255)                not null,
+    starts_at    timestamp without time zone not null,
+    ends_at      timestamp without time zone not null,
+    constraint fk_clients foreign key (client_id)
+        references clients (id)
+        on delete restrict,
+    constraint fk_book_copy foreign key (book_copy_id)
+        references book_copies (id)
+        on delete cascade
+);
+
+create table returns
+(
+    id          serial primary key,
+    loan_id     int                         not null,
+    returned_at timestamp without time zone not null default now(),
+    constraint fk_loan foreign key (loan_id)
+        references loans (id)
+        on delete cascade
+);
+
+create table fines
+(
+    id         serial primary key,
+    loan_id    int                         not null,
+    amount     numeric(5, 2)               not null,
+    status     varchar(255)                not null,
+    created_at timestamp without time zone not null default now(),
+    constraint fk_loan foreign key (loan_id)
+        references loans (id)
+        on delete cascade
+);
+
+==================== FILE: ./src/main/resources/openapi/documentation.yaml ====================
+openapi: 3.0.3
+info:
+  title: Library API
+  version: 1.0.0
+
+paths:
+  /api/clients:
+    post:
+      tags:
+        - Users
+      summary: Create client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRegisterRequest'
+      responses:
+        '200':
+          description: Client created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'
+
+  /api/clients/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get client by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'
+    patch:
+      tags:
+        - Users
+      summary: Update client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientUpdateRequest'
+      responses:
+        '200':
+          description: Client updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'
+
+    delete:
+      tags:
+        - Users
+      summary: Delete client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/offices:
+    post:
+      tags:
+        - Offices
+      summary: Create office
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfficeCreateRequest'
+      responses:
+        '200':
+          description: Office created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficeResponse'
+
+  /api/offices/{id}:
+    get:
+      tags:
+        - Offices
+      summary: Get office by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Office
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficeResponse'
+    patch:
+      tags:
+        - Offices
+      summary: Update office
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfficeUpdateRequest'
+      responses:
+        '200':
+          description: Office updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficeResponse'
+
+    delete:
+      tags:
+        - Offices
+      summary: Delete office
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/books:
+    post:
+      tags:
+        - Books
+      summary: Create book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCreateRequest'
+      responses:
+        '200':
+          description: Book created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+
+  /api/books/{id}:
+    get:
+      tags:
+        - Books
+      summary: Get book by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Book
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+
+    patch:
+      tags:
+        - Books
+      summary: Update book
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookUpdateRequest'
+      responses:
+        '200':
+          description: Book updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+
+    delete:
+      tags:
+        - Books
+      summary: Delete book
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/books/{id}/copies:
+    post:
+      tags:
+        - Books
+      summary: Create book copy by book id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCopyCreateRequest'
+      responses:
+        '200':
+          description: Book copy created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookCopyResponse'
+
+  /api/books/copies/{copyID}:
+    get:
+      tags:
+        - Books
+      summary: Get book copy by id
+      parameters:
+        - name: copyID
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Book copy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookCopyResponse'
+
+    patch:
+      tags:
+        - Books
+      summary: Update book copy
+      parameters:
+        - name: copyID
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCopyUpdateRequest'
+      responses:
+        '200':
+          description: Book copy updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookCopyResponse'
+
+    delete:
+      tags:
+        - Books
+      summary: Delete book copy
+      parameters:
+        - name: copyID
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/fines:
+    post:
+      tags:
+        - Operations
+      summary: Create fine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FineCreateRequest'
+      responses:
+        '200':
+          description: Fine created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FineResponse'
+
+  /api/fines/{id}:
+    get:
+      tags:
+        - Operations
+      summary: Get fine by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Fine
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FineResponse'
+    patch:
+      tags:
+        - Operations
+      summary: Update fine status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FineUpdateStatusRequest'
+      responses:
+        '200':
+          description: Fine updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FineResponse'
+    delete:
+      tags:
+        - Operations
+      summary: Delete fine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/loans:
+    post:
+      tags:
+        - Operations
+      summary: Create loan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanCreateRequest'
+      responses:
+        '200':
+          description: Loan created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+
+  /api/loans/{id}:
+    get:
+      tags:
+        - Operations
+      summary: Get loan by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Loan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+
+    patch:
+      tags:
+        - Operations
+      summary: Update loan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanUpdateRequest'
+      responses:
+        '200':
+          description: Loan updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+    delete:
+      tags:
+        - Operations
+      summary: Delete loan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/reservations:
+    post:
+      tags:
+        - Operations
+      summary: Create reservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationCreateRequest'
+      responses:
+        '200':
+          description: Reservation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+
+  /api/reservations/{id}:
+    get:
+      tags:
+        - Operations
+      summary: Get reservation by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Reservation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+    delete:
+      tags:
+        - Operations
+      summary: Delete reservation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/returns:
+    post:
+      tags:
+        - Operations
+      summary: Create return
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnCreateRequest'
+      responses:
+        '200':
+          description: Return created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnResponse'
+
+  /api/returns/{id}:
+    get:
+      tags:
+        - Operations
+      summary: Get return by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Return
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnResponse'
+    delete:
+      tags:
+        - Operations
+      summary: Delete return
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/loans/aggregateByOffices:
+    get:
+      tags:
+        - Loans
+      summary: Get aggregated loans by office for period
+      parameters:
+        - name: fromDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Start date of the period
+        - name: toDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: End date of the period
+      responses:
+        '200':
+          description: Aggregated loan counts per office
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanOfficeAggregate'
+
+
+  /api/loans/overdueAggregateByOffices:
+    get:
+      tags:
+        - Loans
+      summary: Get aggregated overdue loans by office for period
+      responses:
+        '200':
+          description: Aggregated overdue loan counts per office
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanOfficeAggregate'
+
+  /api/mongo-test/setup:
+    get:
+      tags:
+        - Test
+      summary: Setup mongo
+      responses:
+        '200':
+          description: Mongo setup result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  before_indexes:
+                    $ref: '#/components/schemas/MongoTest'
+                  after_indexes:
+                    $ref: '#/components/schemas/MongoTest'
+                  status:
+                    type: string
+                    example: Done! Data seeded and indexes created.
+
+  /api/authors:
+    post:
+      tags:
+        - Authors
+      summary: Create author (MongoDB)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+              example: "Robert C. Martin"
+      responses:
+        '200':
+          description: Author created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorResponse'
+
+    get:
+      tags:
+        - Authors
+      summary: Get all authors (MongoDB)
+      responses:
+        '200':
+          description: List of authors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuthorResponse'
+
+  /api/books/{bookId}/authors/{authorId}:
+    post:
+      tags:
+        - Books
+        - Authors
+      summary: Link author to book (M:N, MongoDB)
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: MongoDB book ObjectId
+        - name: authorId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: MongoDB author ObjectId
+      responses:
+        '200':
+          description: Author linked to book
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Author linked to book
+
+  /api/books/{mongoId}/authors:
+    get:
+      tags:
+        - Books
+        - Authors
+      summary: Get book with authors (MongoDB $lookup)
+      parameters:
+        - name: mongoId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: MongoDB book ObjectId
+      responses:
+        '200':
+          description: Book with authors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookWithAuthorResponse'
+
+
+components:
+  schemas:
+    ClientRegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        city:
+          type: string
+      required: [name, email, password, city]
+
+    ClientUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        city:
+          type: string
+
+    ClientResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        city:
+          type: string
+
+
+    OfficeCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        workingTime:
+          type: string
+      required: [name, address, workingTime]
+
+    OfficeUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        workingTime:
+          type: string
+
+    OfficeResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        address:
+          type: string
+        workingTime:
+          type: string
+
+
+    BookCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        genre:
+          type: string
+        year:
+          type: integer
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        isbnNumber:
+          type: string
+      required: [title, author, year, isbnNumber]
+
+    BookUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        genre:
+          type: string
+        year:
+          type: integer
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        isbnNumber:
+          type: string
+
+    BookResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        genre:
+          type: string
+        year:
+          type: integer
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        isbnNumber:
+          type: string
+
+    BookCopyCreateRequest:
+      type: object
+      properties:
+        officeID:
+          type: integer
+          format: int64
+      required: [officeID]
+
+    BookCopyUpdateRequest:
+      type: object
+      properties:
+        officeID:
+          type: integer
+          format: int64
+        status:
+          type: string
+
+    BookCopyResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        bookID:
+          type: integer
+          format: int64
+        officeID:
+          type: integer
+          format: int64
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    FineCreateRequest:
+      type: object
+      properties:
+        loanID:
+          type: integer
+          format: int64
+        amount:
+          type: number
+          format: double
+      required: [loanId, amount]
+
+    FineUpdateStatusRequest:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    FineResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        loanID:
+          type: integer
+          format: int64
+        amount:
+          type: number
+          format: double
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    LoanCreateRequest:
+      type: object
+      properties:
+        clientID:
+          type: integer
+          format: int64
+        bookCopyID:
+          type: integer
+          format: int64
+        durationInDays:
+          type: integer
+      required: [clientID, bookCopyID, durationInDays]
+
+    LoanUpdateRequest:
+      type: object
+      properties:
+        status:
+          type: string
+        durationInDays:
+          type: integer
+
+    LoanResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        clientID:
+          type: integer
+          format: int64
+        bookCopyID:
+          type: integer
+          format: int64
+        status:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+
+    ReservationCreateRequest:
+      type: object
+      properties:
+        clientID:
+          type: integer
+          format: int64
+        bookCopyID:
+          type: integer
+          format: int64
+        durationInDays:
+          type: integer
+
+    ReservationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        clientID:
+          type: integer
+          format: int64
+        bookCopyID:
+          type: integer
+          format: int64
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+
+    ReturnCreateRequest:
+      type: object
+      properties:
+        loanID:
+          type: integer
+          format: int64
+
+    ReturnResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        loanID:
+          type: integer
+          format: int64
+        returnDate:
+          type: string
+          format: date-time
+
+    LoanOfficeAggregate:
+      type: object
+      properties:
+        officeID:
+          type: integer
+          format: int64
+        officeName:
+          type: string
+        loansCount:
+          type: integer
+
+    MongoTest:
+      type: object
+      properties:
+        before_indexes:
+          type: object
+          additionalProperties: true
+        after_indexes:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+
+    AuthorResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fabc1234567890abcd1234"
+        name:
+          type: string
+          example: "Robert C. Martin"
+
+    BookWithAuthorResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fabc1234567890abcd1111"
+        title:
+          type: string
+          example: "Clean Code"
+        year:
+          type: integer
+          example: 2008
+        tags:
+          type: array
+          items:
+            type: string
+        links:
+          type: object
+          properties:
+            bookId:
+              type: string
+            authorId:
+              type: string
+            role:
+              type: string
+              example: author
+        author:
+          $ref: '#/components/schemas/AuthorResponse'
+
+

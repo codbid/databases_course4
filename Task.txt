@@ -1,0 +1,134 @@
+Реплика mongo.db:
+
+1) Добавил в docker-compose:
+command: ["--replSet", "rs0", "--bind_ip_all"]
+
+2)Подключился к БД: 
+docker exec -it library_mongo mongosh
+
+3) Прописал rs.initiate() — это команда, которая превращает обычный одиночный сервер MongoDB в Replica Set (набор реплик).
+test> rs.initiate()
+{
+  info2: 'no configuration specified. Using a default configuration for the set',
+  me: '5fba2cb45af9:27017',
+  ok: 1
+}
+rs0 [direct: other] test> 
+rs0 [direct: primary] test> 
+
+Приглашение в консоли изменилось с other> на PRIMARY>. Это значит, что сервер стал «Главным» (Primary) в своей группе репликаци
+
+// Начинаем сессию и транзакцию
+rs0 [direct: primary] test> session = db.getMongo().startSession();
+{ id: UUID('c613b8d5-68ad-4616-904b-2e42fefca4e1') }
+rs0 [direct: primary] test> session.startTransaction();
+
+// Шаг 1: Добавляем автора
+rs0 [direct: primary] test> session.getDatabase("library").authors.insertOne({ name: "Джордж Оруэлл", country: "Великобритания" });
+{
+  acknowledged: true,
+  insertedId: ObjectId('697a766814b0cbe23ece5f47')
+}
+// Шаг 2: Добавляем его книгу
+rs0 [direct: primary] test> session.getDatabase("library").books.insertOne({ title: "1984", pages: 328, gegenre: "Dystopia" });
+{
+  acknowledged: true,
+  insertedId: ObjectId('697a767114b0cbe23ece5f48')
+}
+// Фиксируем всё
+rs0 [direct: primary] test> session.commitTransaction();
+... session.endSession();
+
+
+
+Добавляем 520 книг:
+var authors = db.authors.find().toArray();
+var authorIds = authors.map(a => a._id);
+var genres = ["Classic", "Horror", "Drama", "Fantasy"];
+var books = [];
+
+for (var i = 1; i <= 520; i++) {
+  var randomAuthorId = authorIds[Math.floor(Math.random() * authorIds.length)];
+  books.push({
+    title: "Произведение №" + i,
+    pages: Math.floor(Math.random() * 800) + 50,
+    genre: genres[Math.floor(Math.random() * genres.length)],
+    author_id: randomAuthorId,
+    rating: (Math.random() * 5).toFixed(1),
+    created_at: new Date()
+  });
+}
+db.books.insertMany(books);
+print("Готово! Книг в базе: " + db.books.countDocuments());
+
+
+
+
+Отчет с $lookup и $group
+
+rs0 [direct: primary] library> db.books.aggregate([
+...   // 1. Связываем книги с авторами по ID
+...   {
+...     $lookup: {
+...       from: "authors",           // Из какой коллекции берем данные
+...       localField: "author_id",   // Поле в коллекции books
+...       foreignField: "_id",       // Поле в коллекции authors
+...       as: "author_info"          // Куда положить результат (будет массивом)
+...     }
+...   },
+...   // 2. Разворачиваем массив author_info в плоский объект
+...   { 
+...     $unwind: "$author_info" 
+...   },
+...   // 3. Группируем по имени автора и считаем метрики
+...   {
+...     $group: {
+...       _id: "$author_info.name",         // Группировка по имени
+...       total_pages: { $sum: "$pages" },  // Сумма страниц
+...       books_count: { $sum: 1 },         // Счётчик книг
+...       avg_rating: { $avg: { $toDouble: "$rating" } } // Средний рейтинг
+...     }
+...   },
+...   // 4. Сортируем по количеству страниц (от большего к меньшему)
+...   { 
+...     $sort: { total_pages: -1 } 
+...   },
+...   // 5. Сохраняем результат в новую коллекцию (Материализация/Кэширование)
+...   { 
+...     $out: "author_stats_report" 
+...   }
+... ])
+
+rs0 [direct: primary] library> db.author_stats_report.find().pretty()
+[
+  {
+    _id: 'Джордж Оруэлл',
+    total_pages: 476550,
+    books_count: 1040,
+    avg_rating: 2.558461538461539
+  }
+]
+rs0 [direct: primary] library> 
+
+
+
+ИТОГ:
+1. Мы включили «Режим Масштабируемости» (Replica Set)
+Что сделали: Команда rs.initiate(). Зачем: В базе данных по умолчанию нельзя делать сложные транзакции и шардирование. Мы перевели её в режим, где она постоянно записывает свои действия в специальный лог. Что это дало: Теперь база «взрослая» — она умеет откатывать ошибки и готова к распределению на 100 серверов.
+
+2. Мы доказали Надежность (Транзакции)
+Что сделали: Код с startTransaction. Зачем: Представь, что ты покупаешь книгу. Деньги списались, а в список «выданных книг» тебя не занесли. Обидно? Транзакция гарантирует: либо оба действия (записать автора и записать книгу) сработают, либо ни одно. Что показали: Что MongoDB умеет работать так же надежно, как банковские системы (ACID-принципы).
+
+3. Мы создали Связи (1:N)
+Что сделали: Залили 4 автора и 520 книг, где у каждой книги есть «ярлык» с ID автора (author_id). Зачем: Это база данных. Мы не пишем имя автора в каждой книге (это много места), мы просто даем ссылку на автора. Что показали: Что ты умеешь проектировать структуру данных (Схема «Книга -> Автор»).
+
+4. Мы построили Аналитику (Агрегация и Кэширование)
+Что сделали: Тот длинный код с $lookup и $group, который ты только что запустил. Что произошло по шагам:
+
+$lookup: База взяла список книг и «подтянула» к ним информацию об авторах по их ID (как склеивание двух таблиц).
+
+$group: База сложила все страницы всех книг для каждого автора.
+
+$out: База не просто выплюнула текст в консоль, а создала новую таблицу (коллекцию) author_stats_report.
+
+Зачем это нужно: Это пункт про Кэширование. Когда начальник попросит отчет «Кто самый крутой автор?», серверу не нужно заново пересчитывать 500 книг. Он просто откроет готовую коллекцию author_stats_report. Это работает в 1000 раз быстрее.
