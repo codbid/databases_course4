@@ -52,7 +52,30 @@ services:
       - "27018:27017"
     volumes:
       - mongo_data:/data/db
-      
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    environment:
+      # Подключаемся к твоему первому сервису 'postgres'
+      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable"
+    depends_on:
+      - postgres
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - postgres-exporter
+
+  grafana:
+    image: grafana/grafana
+    container_name: library_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
   redis:
     image: redis:7-alpine
     container_name: library_redis
