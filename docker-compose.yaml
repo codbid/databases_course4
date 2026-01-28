@@ -44,10 +44,6 @@ services:
     container_name: library_mongo
     restart: always
     command: ["--replSet", "rs0", "--bind_ip_all"]
-    environment:
-      #MONGO_INITDB_ROOT_USERNAME: mongo
-      #MONGO_INITDB_ROOT_PASSWORD: mongo
-      MONGO_INITDB_DATABASE: library
     ports:
       - "27018:27017"
     volumes:
@@ -76,6 +72,19 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+  
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40
+    container_name: library_mongo_exporter
+    command:
+      - '--mongodb.uri=mongodb://test:testing@library_mongo:27017/admin?replicaSet=rs0'
+      - '--collect-all'
+      - '--compatible-mode'
+    ports:
+      - "9216:9216"
+    depends_on:
+      - mongodb
+
   redis:
     image: redis:7-alpine
     container_name: library_redis

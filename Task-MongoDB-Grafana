@@ -1,0 +1,7 @@
+Импортируй дашборд для MongoDB:
+Нажми Dashboards -> New -> Import.
+Введи ID: 14997
+Выбери Prometheus и жми Import.
+
+НАГРУЗКА 
+docker exec -it library_mongo bash -c 'while true; do mongosh test --eval "db.stress_test.insertOne({t: Date.now()})"; sleep 0.1; done'
