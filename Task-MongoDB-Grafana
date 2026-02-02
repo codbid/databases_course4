@@ -5,3 +5,34 @@
 
 НАГРУЗКА 
 docker exec -it library_mongo bash -c 'while true; do mongosh test --eval "db.stress_test.insertOne({t: Date.now()})"; sleep 0.1; done'
+
+
+# INSERT
+docker exec -it library_mongo mongosh --eval '
+  for (let i = 0; i < 5000; i++) {
+    db.getSiblingDB("library").test_data.insertOne({x: i, date: new Date()});
+  }
+'
+
+docker exec -it library_mongo mongosh --eval '
+  const dbName = "library";
+  const col = db.getSiblingDB(dbName).stress_test;
+  
+  print("Запуск комплексного теста (60 секунд)...");
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < 60000) {
+    // 1. INSERT (Вставка)
+    col.insertOne({ x: Math.random(), status: "new", ts: new Date() });
+
+    // 2. QUERY (Поиск/Чтение)
+    col.find({ status: "new" }).limit(5).toArray();
+
+    // 3. UPDATE (Обновление)
+    col.updateOne({ status: "new" }, { $set: { status: "processed" } });
+
+    // 4. DELETE (Удаление)
+    col.deleteOne({ status: "processed" });
+  }
+  print("Тест завершен!");
+'
