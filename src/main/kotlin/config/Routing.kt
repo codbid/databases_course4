@@ -2,6 +2,7 @@ package com.example.config
 
 import com.example.app.books.authors.authors
 import com.example.app.books.books
+import com.example.app.neo4j.neo4j
 import com.example.app.offices.offices
 import com.example.app.operations.operations
 import com.example.app.test.test
@@ -25,6 +26,7 @@ fun Application.configureRouting() {
             operations()
             test()
             authors()
+            neo4j()
         }
 
         openAPI(

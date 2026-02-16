@@ -24,6 +24,10 @@ db:
     port: 27018
     database:
       name: library
+  neo4j:
+    uri: "bolt://localhost:7687"
+    user: neo4j
+    password: password
 
 flyway:
   clean: false

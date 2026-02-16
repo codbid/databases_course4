@@ -44,6 +44,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core:10.17.0")
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.21.0")
+    implementation("org.neo4j.driver:neo4j-java-driver:5.25.0")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:2.3.12")
     implementation("io.ktor:ktor-serialization-jackson-jvm:2.3.12")
     implementation("dev.forst:ktor-openapi-generator:0.6.1")
