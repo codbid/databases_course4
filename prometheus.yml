@@ -9,3 +9,12 @@ scrape_configs:
   - job_name: 'mongodb-metrics'
     static_configs:
       - targets: ['mongodb-exporter:9216']
+
+  # Neo4j Community: метрики через sidecar-экспортер (подключается по Bolt)
+  - job_name: 'neo4j-metrics'
+    static_configs:
+      - targets: ['neo4j-exporter:5000']
+  # Neo4j Enterprise: встроенный эндпоинт (раскомментируйте и закомментируйте выше, если используете neo4j:5-enterprise)
+  # - job_name: 'neo4j-metrics'
+  #   static_configs:
+  #     - targets: ['neo4j:2000']
