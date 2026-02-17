@@ -31,14 +31,17 @@ WHERE c1 <> c2
 RETURN c1.name AS client1, c2.name AS client2, b.title AS recommendedBook
 LIMIT 15;
 
-// 5) Переменная длина пути [*]: «книги, доступные через 1–3 шага от офиса» (офис -> копия -> книга; или офис -> копия -> книга -> автор)
-MATCH path = (o:Office)<-[:LOCATED_AT]-(copy:BookCopy)-[:INSTANCE_OF*1..2]->(target)
-WHERE o.name = 'Центральная библиотека'
-  AND (target:Book OR target:Author)
-RETURN o.name AS office, type(last(relationships(path))) AS relType, target.name AS targetName, target.title AS targetTitle
+// 5) Переменная длина пути [*]: "книги, доступные через 1–3 шага от офиса" (офис -> копия -> книга; или офис -> копия -> книга -> автор)
+MATCH (o:Office {name:'Центральная библиотека'})
+<-[:LOCATED_AT]-(copy:BookCopy)
+-[:INSTANCE_OF]->(b:Book)
+OPTIONAL MATCH (b)-[:WRITTEN_BY]->(a:Author)
+RETURN o.name,
+       b.title AS bookTitle,
+       a.name AS authorName
 LIMIT 20;
 
-// 6) Остановки, связанные через 2 маршрута — в нашей модели «офисы, связанные через 2 общие копии одной книги»
+// 6) Остановки, связанные через 2 маршрута - в нашей модели "офисы, связанные через 2 общие копии одной книги"
 // Офисы, в которых есть копии одной и той же книги (связаны через общую книгу)
 MATCH (o1:Office)<-[:LOCATED_AT]-(c1:BookCopy)-[:INSTANCE_OF]->(b:Book)<-[:INSTANCE_OF]-(c2:BookCopy)-[:LOCATED_AT]->(o2:Office)
 WHERE o1 <> o2 AND id(o1) < id(o2)

@@ -1,11 +1,6 @@
-// ============================================================
-// 8. Запрос, объединяющий цепочки, агрегации, фильтрацию
-// Пример: «В каждом городе клиентов: топ-3 автора по числу взятых книг (через BORROWED->Copy->Book->Author), только классика»
-// ============================================================
+// Сложный запрос: для каждого города находим топ-3 авторов
+// Считаем, сколько раз брали их книги жанра "классика"
 
-// Цепочка: Client - BORROWED -> BookCopy - INSTANCE_OF -> Book - WRITTEN_BY -> Author
-// Фильтр: Book.genre = 'классика'
-// Агрегация: count по (city, author), сортировка, limit по городу
 MATCH (c:Client)-[:BORROWED]->(copy:BookCopy)-[:INSTANCE_OF]->(b:Book)-[:WRITTEN_BY]->(a:Author)
 WHERE b.genre = 'классика'
 WITH c.city AS city, a.name AS authorName, count(*) AS borrowCount
@@ -15,9 +10,12 @@ UNWIND range(0, size(authorCounts) - 1) AS idx
 WITH city, authorCounts[idx] AS item, idx
 WHERE idx < 3
 RETURN city, item.author AS topAuthor, item.count AS borrowCount
-ORDER BY city, borrowCount DESC;
+ORDER BY borrowCount DESC;
 
-// Альтернатива: топ-5 офисов по числу активных (не возвращённых) выдач, с именами клиентов (collect)
+
+// Альтернативный вариант: топ-5 офисов по количеству активных (не возвращённых) выдач
+// Плюс собираем список клиентов, у которых сейчас книги на руках
+
 MATCH (o:Office)<-[:LOCATED_AT]-(copy:BookCopy)<-[:BORROWED]-(client:Client)
 MATCH (client)-[bor:BORROWED]->(copy)
 WHERE bor.returned = false
