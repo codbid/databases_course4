@@ -48,6 +48,7 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm:2.3.12")
     implementation("io.ktor:ktor-serialization-jackson-jvm:2.3.12")
     implementation("dev.forst:ktor-openapi-generator:0.6.1")
+    implementation("org.apache.kafka:kafka-clients:3.7.0")
 
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")

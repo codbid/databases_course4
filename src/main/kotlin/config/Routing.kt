@@ -2,6 +2,7 @@ package com.example.config
 
 import com.example.app.books.authors.authors
 import com.example.app.books.books
+import com.example.app.kafka.kafka
 import com.example.app.neo4j.neo4j
 import com.example.app.offices.offices
 import com.example.app.operations.operations
@@ -27,6 +28,9 @@ fun Application.configureRouting() {
             test()
             authors()
             neo4j()
+            if (com.example.config.KafkaFactory.isInitialized) {
+                kafka(this@configureRouting)
+            }
         }
 
         openAPI(
