@@ -1,0 +1,99 @@
+Задание: кластер Kafka и интеграция с приложением библиотеки
+==============================================================
+
+1. Поднять инфраструктуру
+-------------------------
+
+1. Убедись, что Docker запущен.
+2. В корне проекта `databases_course4` выполни:
+
+   ```bash
+   docker compose up -d
+   ```
+
+3. Будут запущены, помимо существующих сервисов, новые контейнеры:
+   - `library_zookeeper` (ZooKeeper)
+   - `library_kafka1`, `library_kafka2`, `library_kafka3` (3 брокера Kafka)
+   - `library_kafdrop` (Web-UI для Kafka на порту 9000)
+
+Порты на хосте:
+   - Kafka брокеры: 9092, 9093, 9094
+   - Kafdrop: 9000
+
+2. Проверка кластера через Kafdrop
+----------------------------------
+
+1. Открой в браузере:
+
+   - `http://localhost:9000`
+
+2. Убедись, что Kafdrop видит кластер (`kafka1`, `kafka2`, `kafka3`) и список топиков.
+   При первом запуске топика `library_events` может ещё не быть — он будет создан автоматически при отправке первого сообщения.
+
+3. Опционально: через UI создай топик `library_events` c:
+   - replication factor = 3
+   - partitions = 3
+
+3. Запуск Ktor-приложения
+-------------------------
+
+1. В отдельном терминале из корня проекта выполни:
+
+   ```bash
+   ./gradlew run
+   ```
+
+2. Приложение поднимется на `http://localhost:8080`.
+
+3. Конфигурация Kafka в `application.yaml`:
+   - `kafka.bootstrapServers: "kafka1:9092,kafka2:9092,kafka3:9092"`
+   - `kafka.topic: "library_events"`
+   - `kafka.groupId: "library-consumers"`
+
+4. End-to-end сценарий: HTTP → Kafka → consumer
+-----------------------------------------------
+
+1. Отправка сообщения в Kafka через HTTP-endpoint:
+
+   ```bash
+   curl -X POST "http://localhost:8080/api/kafka/test" \
+     -H "Content-Type: application/json" \
+     -d '{ "key": "test-key", "value": "hello from library app" }'
+   ```
+
+2. Приложение использует `KafkaProducerService`, который посылает сообщение в топик `library_events` с помощью Kafka producer’а, сконфигурированного через `KafkaFactory`.
+
+3. Чтение сообщений consumer’ом:
+   - `KafkaConsumerService` при старте приложения подписывается на `library_events` и в фоне читает сообщения.
+   - Полученные сообщения логируются в лог приложения и сохраняются в небольшом in-memory списке (до 50 последних).
+
+4. Получение последних сообщений через HTTP:
+
+   ```bash
+   curl "http://localhost:8080/api/kafka/messages"
+   ```
+
+   В ответ придёт JSON-массив строк с последними считанными сообщениями, например:
+
+   ```json
+   [
+     "library_events[0]@0: hello from library app"
+   ]
+   ```
+
+5. Дополнительная проверка через Kafdrop
+----------------------------------------
+
+1. Вернись в Kafdrop (`http://localhost:9000`).
+2. Открой топик `library_events` и посмотри:
+   - количество партиций;
+   - количество сообщений;
+   - содержимое сообщений, отправленных через HTTP-endpoint.
+
+6. Резюме
+--------
+
+- Кластер Kafka из 3 брокеров поднимается вместе с остальной инфраструктурой через `docker compose up -d`.
+- Приложение библиотеки отправляет сообщения в Kafka через `/api/kafka/test`.
+- Consumer в приложении читает сообщения и их можно получить через `/api/kafka/messages`, а также увидеть в Kafdrop.
+
