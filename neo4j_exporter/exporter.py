@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Prometheus exporter for Neo4j Community: node/relationship counts and basic stats."""
 import os
+import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from neo4j import GraphDatabase
-from prometheus_client import REGISTRY, Gauge, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import REGISTRY, Gauge, Counter, generate_latest, CONTENT_TYPE_LATEST
 
 NEO4J_URI = os.environ.get("NEO4J_URI", "bolt://neo4j:7687")
 NEO4J_USER = os.environ.get("NEO4J_USER", "neo4j")
@@ -13,10 +14,16 @@ NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD", "password")
 neo4j_nodes = Gauge("neo4j_nodes_total", "Total number of nodes in the default database")
 neo4j_relationships = Gauge("neo4j_relationships_total", "Total number of relationships")
 neo4j_up = Gauge("neo4j_up", "1 if Neo4j is reachable, 0 otherwise")
+# Метрики, которые меняются при каждом скрейпе — графики в Grafana не плоские
+neo4j_last_scrape_timestamp = Gauge("neo4j_last_scrape_timestamp_seconds", "Unix time of last successful metrics scrape")
+neo4j_scrape_duration_seconds = Gauge("neo4j_scrape_duration_seconds", "Time spent collecting metrics")
+neo4j_scrapes_total = Counter("neo4j_scrapes_total", "Total number of /metrics scrapes")
 
 
 def collect():
     driver = None
+    start = time.perf_counter()
+    neo4j_scrapes_total.inc()
     try:
         driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
         with driver.session() as session:
@@ -25,6 +32,7 @@ def collect():
             r = session.run("MATCH ()-[r]->() RETURN count(r) AS c")
             neo4j_relationships.set(r.single()["c"])
         neo4j_up.set(1)
+        neo4j_last_scrape_timestamp.set(time.time())
     except Exception:
         neo4j_up.set(0)
         neo4j_nodes.set(0)
@@ -32,6 +40,7 @@ def collect():
     finally:
         if driver:
             driver.close()
+    neo4j_scrape_duration_seconds.set(time.perf_counter() - start)
 
 
 class Handler(BaseHTTPRequestHandler):

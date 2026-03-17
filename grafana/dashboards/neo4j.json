@@ -11,7 +11,7 @@
       "gridPos": { "h": 2, "w": 24, "x": 0, "y": 0 },
       "id": 0,
       "options": {
-        "content": "Метрики Neo4j через **neo4j-exporter** (Neo4j Community). Экспортер подключается по Bolt и отдаёт число узлов/связей. Источник: Prometheus, job `neo4j-metrics`.",
+        "content": "Метрики Neo4j через **neo4j-exporter** (Neo4j Community). Графики «Скрейпы в минуту», «Длительность сбора», «Время последнего скрейпа» меняются при каждом опросе Prometheus.",
         "mode": "markdown"
       },
       "title": "Подсказка",
@@ -107,6 +107,42 @@
         { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "neo4j_relationships_total", "legendFormat": "связи", "refId": "A" }
       ],
       "title": "Число связей во времени",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "id": 6,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "list", "placement": "bottom", "showLegend": true } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "rate(neo4j_scrapes_total[1m])*60", "legendFormat": "скрейпов/мин", "refId": "A" }
+      ],
+      "title": "Скрейпы в минуту (график меняется)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "id": 7,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "list", "placement": "bottom", "showLegend": true } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "neo4j_scrape_duration_seconds", "legendFormat": "сек", "refId": "A" }
+      ],
+      "title": "Длительность сбора метрик (меняется)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "dateTimeFromNow" }, "overrides": [] },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 22 },
+      "id": 8,
+      "options": { "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "neo4j_last_scrape_timestamp_seconds", "legendFormat": "последний скрейп", "refId": "A" }
+      ],
+      "title": "Время последнего скрейпа",
       "type": "timeseries"
     }
   ],

@@ -200,7 +200,9 @@ services:
       - kafka2
       - kafka3
     environment:
-      - KAFKA_BROKERCONNECT=kafka1:9092,kafka2:9092,kafka3:9092
+      # Внутри docker-сети Kafdrop должен ходить на INTERNAL-лисенеры брокеров (29092),
+      # а не на внешние порты 9092–9094, проброшенные на хост.
+      - KAFKA_BROKERCONNECT=kafka1:29092,kafka2:29092,kafka3:29092
       - SERVER_PORT=9000
     ports:
       - "9000:9000"
