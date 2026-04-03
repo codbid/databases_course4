@@ -16,7 +16,9 @@ object BookCopiesTable : LongIdTable("book_copies") {
 }
 
 class BookCopyEntity(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<BookCopyEntity>(BookCopiesTable)
+    companion object : LongEntityClass<BookCopyEntity>(BookCopiesTable) {
+        fun findAvailableById(id: Long): BookCopyEntity? = findById(id)?.takeIf { it.status == BookCopyStatus.AVAILABLE }
+    }
     var bookLink by BookLinkEntity referencedOn BookCopiesTable.bookLink
     var office by OfficeEntity referencedOn BookCopiesTable.office
     var status by BookCopiesTable.status

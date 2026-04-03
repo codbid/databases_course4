@@ -1,5 +1,8 @@
 package com.example
 
+import com.example.app.kafka.consumer.AnalyticsConsumer
+import com.example.app.kafka.consumer.InventoryConsumer
+import com.example.app.kafka.streams.BookStatsStream
 import com.example.config.DatabaseFactory
 import com.example.config.KafkaFactory
 import com.example.config.Neo4jFactory
@@ -21,4 +24,8 @@ fun Application.module() {
     configureRouting()
     DatabaseFactory.init(this, environment.config)
     Neo4jFactory.init(environment.config, this)
+
+    Thread { InventoryConsumer.start() }.start()
+    Thread { AnalyticsConsumer.start() }.start()
+    Thread { BookStatsStream.start() }.start()
 }

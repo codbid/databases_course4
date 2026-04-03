@@ -17,9 +17,6 @@ db:
     password: postgres
     maxPoolSize: 5
   mongo:
-    # для локального docker-compose (Mongo без auth) — оставьте user/password пустыми или закомментируйте
-    # user: mongo
-    # password: mongo
     host: localhost
     port: 27018
     database:

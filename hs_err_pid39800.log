@@ -1,0 +1,281 @@
+#
+# There is insufficient memory for the Java Runtime Environment to continue.
+# Native memory allocation (mmap) failed to map 532676608 bytes. Error detail: G1 virtual space
+# Possible reasons:
+#   The system is out of physical RAM or swap space
+#   This process is running with CompressedOops enabled, and the Java Heap may be blocking the growth of the native heap
+# Possible solutions:
+#   Reduce memory load on the system
+#   Increase physical memory or swap space
+#   Check if swap backing store is full
+#   Decrease Java heap size (-Xmx/-Xms)
+#   Decrease number of Java threads
+#   Decrease Java thread stack sizes (-Xss)
+#   Set larger code cache with -XX:ReservedCodeCacheSize=
+#   JVM is running with Zero Based Compressed Oops mode in which the Java heap is
+#     placed in the first 32GB address space. The Java Heap base address is the
+#     maximum limit for the native heap growth. Please use -XX:HeapBaseMinAddress
+#     to set the Java Heap base and to place the Java Heap above 32GB virtual address.
+# This output file may be truncated or incomplete.
+#
+#  Out of Memory Error (os_windows.cpp:3736), pid=39800, tid=21592
+#
+# JRE version:  (21.0.8+9) (build )
+# Java VM: OpenJDK 64-Bit Server VM (21.0.8+9-LTS, mixed mode, sharing, tiered, compressed oops, compressed class ptrs, g1 gc, windows-amd64)
+# No core dump will be written. Minidumps are not enabled by default on client versions of Windows
+#
+
+---------------  S U M M A R Y ------------
+
+Command Line: -Dio.ktor.development=true -javaagent:D:\IntelliJ IDEA 261.22158.121\lib\idea_rt.jar=64880 -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 com.example.ApplicationKt
+
+Host: 13th Gen Intel(R) Core(TM) i7-13650HX, 20 cores, 31G,  Windows 11 , 64 bit Build 26100 (10.0.26100.7920)
+Time: Mon Mar 30 23:41:00 2026 elapsed time: 0.008620 seconds (0d 0h 0m 0s)
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x000001ca8d694970):  JavaThread "Unknown thread" [_thread_in_vm, id=21592, stack(0x0000003c76400000,0x0000003c76500000) (1024K)]
+
+Stack: [0x0000003c76400000,0x0000003c76500000]
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+V  [jvm.dll+0x6e1729]
+V  [jvm.dll+0x8bf47b]
+V  [jvm.dll+0x8c19aa]
+V  [jvm.dll+0x8c2083]
+V  [jvm.dll+0x289fd6]
+V  [jvm.dll+0x6de085]
+V  [jvm.dll+0x6d218a]
+V  [jvm.dll+0x366f6e]
+V  [jvm.dll+0x36ee1b]
+V  [jvm.dll+0x3c06b9]
+V  [jvm.dll+0x3c095b]
+V  [jvm.dll+0x33a8b7]
+V  [jvm.dll+0x33b3fb]
+V  [jvm.dll+0x888e5e]
+V  [jvm.dll+0x3cd611]
+V  [jvm.dll+0x871e5c]
+V  [jvm.dll+0x461261]
+V  [jvm.dll+0x462ea1]
+C  [jli.dll+0x52f0]
+C  [ucrtbase.dll+0x37b0]
+C  [KERNEL32.DLL+0x2e8d7]
+C  [ntdll.dll+0x8c48c]
+
+
+---------------  P R O C E S S  ---------------
+
+Threads class SMR info:
+_java_thread_list=0x00007fff43456288, length=0, elements={
+}
+
+Java Threads: ( => current thread )
+Total: 0
+
+Other Threads:
+  0x000001cab1c70900 WorkerThread "GC Thread#0"                     [id=40196, stack(0x0000003c76500000,0x0000003c76600000) (1024K)]
+  0x000001ca8fc5fca0 ConcurrentGCThread "G1 Main Marker"            [id=28480, stack(0x0000003c76600000,0x0000003c76700000) (1024K)]
+  0x000001ca8fc61530 WorkerThread "G1 Conc#0"                       [id=25720, stack(0x0000003c76700000,0x0000003c76800000) (1024K)]
+
+[error occurred during error reporting (printing all threads), id 0xc0000005, EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x00007fff42b4d307]
+VM state: not at safepoint (not fully initialized)
+
+VM Mutex/Monitor currently owned by a thread:  ([mutex/lock_event])
+[0x00007fff434ca8c8] Heap_lock - owner thread: 0x000001ca8d694970
+
+Heap address: 0x0000000604000000, size: 8128 MB, Compressed Oops mode: Zero based, Oop shift amount: 3
+
+CDS archive(s) mapped at: [0x0000000000000000-0x0000000000000000-0x0000000000000000), size 0, SharedBaseAddress: 0x0000000800000000, ArchiveRelocationMode: 1.
+Narrow klass base: 0x0000000000000000, Narrow klass shift: 0, Narrow klass range: 0x0
+
+GC Precious Log:
+ CardTable entry size: 512
+ Card Set container configuration: InlinePtr #cards 4 size 8 Array Of Cards #cards 32 size 80 Howl #buckets 8 coarsen threshold 7372 Howl Bitmap #cards 1024 size 144 coarsen threshold 921 Card regions per heap region 1 cards per card region 8192
+
+Heap:
+ garbage-first heap   total 0K, used 0K [0x0000000604000000, 0x0000000800000000)
+  region size 4096K, 0 young (0K), 0 survivors (0K)
+
+[error occurred during error reporting (printing heap information), id 0xc0000005, EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x00007fff42f3ba99]
+GC Heap History (0 events):
+No events
+
+Dll operation events (1 events):
+Event: 0.006 Loaded shared library C:\Users\istom\.jdks\ms-21.0.8\bin\java.dll
+
+Deoptimization events (0 events):
+No events
+
+Classes loaded (0 events):
+No events
+
+Classes unloaded (0 events):
+No events
+
+Classes redefined (0 events):
+No events
+
+Internal exceptions (0 events):
+No events
+
+ZGC Phase Switch (0 events):
+No events
+
+VM Operations (0 events):
+No events
+
+Memory protections (0 events):
+No events
+
+Nmethod flushes (0 events):
+No events
+
+Events (0 events):
+No events
+
+
+Dynamic libraries:
+0x00007ff6e07f0000 - 0x00007ff6e07fe000 	C:\Users\istom\.jdks\ms-21.0.8\bin\java.exe
+0x00007ff82f800000 - 0x00007ff82fa67000 	C:\WINDOWS\SYSTEM32\ntdll.dll
+0x00007ff82eb70000 - 0x00007ff82ec39000 	C:\WINDOWS\System32\KERNEL32.DLL
+0x00007ff82ccd0000 - 0x00007ff82d0c1000 	C:\WINDOWS\System32\KERNELBASE.dll
+0x00007ff82c950000 - 0x00007ff82ca9b000 	C:\WINDOWS\System32\ucrtbase.dll
+0x00007ff8223c0000 - 0x00007ff8223d8000 	C:\Users\istom\.jdks\ms-21.0.8\bin\jli.dll
+0x00007ff8222d0000 - 0x00007ff8222ee000 	C:\Users\istom\.jdks\ms-21.0.8\bin\VCRUNTIME140.dll
+0x00007ff82e910000 - 0x00007ff82ead5000 	C:\WINDOWS\System32\USER32.dll
+0x00007ff808f30000 - 0x00007ff8091c3000 	C:\WINDOWS\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.26100.8037_none_3e092faae333b53b\COMCTL32.dll
+0x00007ff82d210000 - 0x00007ff82d237000 	C:\WINDOWS\System32\win32u.dll
+0x00007ff82f0e0000 - 0x00007ff82f189000 	C:\WINDOWS\System32\msvcrt.dll
+0x00007ff82e8e0000 - 0x00007ff82e90b000 	C:\WINDOWS\System32\GDI32.dll
+0x00007ff82d2f0000 - 0x00007ff82d41b000 	C:\WINDOWS\System32\gdi32full.dll
+0x00007ff82d0d0000 - 0x00007ff82d173000 	C:\WINDOWS\System32\msvcp_win.dll
+0x00007ff82ed70000 - 0x00007ff82eda1000 	C:\WINDOWS\System32\IMM32.DLL
+0x00007ff827010000 - 0x00007ff82701c000 	C:\Users\istom\.jdks\ms-21.0.8\bin\vcruntime140_1.dll
+0x00007ff800fe0000 - 0x00007ff801069000 	C:\Users\istom\.jdks\ms-21.0.8\bin\msvcp140.dll
+0x00007fff42800000 - 0x00007fff435ac000 	C:\Users\istom\.jdks\ms-21.0.8\bin\server\jvm.dll
+0x00007ff82e2a0000 - 0x00007ff82e35b000 	C:\WINDOWS\System32\ADVAPI32.dll
+0x00007ff82d910000 - 0x00007ff82d9b7000 	C:\WINDOWS\System32\sechost.dll
+0x00007ff82d9c0000 - 0x00007ff82dad8000 	C:\WINDOWS\System32\RPCRT4.dll
+0x00007ff82eae0000 - 0x00007ff82eb54000 	C:\WINDOWS\System32\WS2_32.dll
+0x00007ff82b200000 - 0x00007ff82b25e000 	C:\WINDOWS\SYSTEM32\POWRPROF.dll
+0x00007ff819ea0000 - 0x00007ff819eab000 	C:\WINDOWS\SYSTEM32\VERSION.dll
+0x00007ff823840000 - 0x00007ff823875000 	C:\WINDOWS\SYSTEM32\WINMM.dll
+0x00007ff82b1e0000 - 0x00007ff82b1f4000 	C:\WINDOWS\SYSTEM32\UMPDC.dll
+0x00007ff82aea0000 - 0x00007ff82aebb000 	C:\WINDOWS\SYSTEM32\kernel.appcore.dll
+0x00007ff824f10000 - 0x00007ff824f1a000 	C:\Users\istom\.jdks\ms-21.0.8\bin\jimage.dll
+0x00007ff829ee0000 - 0x00007ff82a122000 	C:\WINDOWS\SYSTEM32\DBGHELP.DLL
+0x00007ff82f2c0000 - 0x00007ff82f642000 	C:\WINDOWS\System32\combase.dll
+0x00007ff82f660000 - 0x00007ff82f737000 	C:\WINDOWS\System32\OLEAUT32.dll
+0x00007ffffff40000 - 0x00007ffffff7b000 	C:\WINDOWS\SYSTEM32\dbgcore.DLL
+0x00007ff82d240000 - 0x00007ff82d2e5000 	C:\WINDOWS\System32\bcryptPrimitives.dll
+0x00007ff8223b0000 - 0x00007ff8223c0000 	C:\Users\istom\.jdks\ms-21.0.8\bin\instrument.dll
+0x00007ff81ffb0000 - 0x00007ff81ffd1000 	C:\Users\istom\.jdks\ms-21.0.8\bin\java.dll
+
+JVMTI agents:
+D:\IntelliJ IDEA 261.22158.121\lib\idea_rt.jar path:none, loaded, not initialized, instrumentlib options:64880
+
+dbghelp: loaded successfully - version: 4.0.5 - missing functions: none
+symbol engine: initialized successfully - sym options: 0x614 - pdb path: .;C:\Users\istom\.jdks\ms-21.0.8\bin;C:\WINDOWS\SYSTEM32;C:\WINDOWS\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.26100.8037_none_3e092faae333b53b;C:\Users\istom\.jdks\ms-21.0.8\bin\server
+
+VM Arguments:
+jvm_args: -Dio.ktor.development=true -javaagent:D:\IntelliJ IDEA 261.22158.121\lib\idea_rt.jar=64880 -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 
+java_command: com.example.ApplicationKt
+java_class_path (initial): D:\Library\build\classes\kotlin\main;D:\Library\build\resources\main;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.exposed\exposed\0.17.13\a7bec9b10c10117909b97c29978755475f965550\exposed-0.17.13.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-serialization-jackson-jvm\3.3.0\440695c4d976d779e7361fca8f0a37f0e02fb5a1\ktor-serialization-jackson-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-server-content-negotiation-jvm\3.3.0\b723d9ce385455716c6c403ed3a93aac6838a1fd\ktor-server-content-negotiation-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.flywaydb\flyway-database-postgresql\10.21.0\fe0116421f78726c6be88d2872f4f69490f6229c\flyway-database-postgresql-10.21.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.flywaydb\flyway-core\10.21.0\ee26be8d18f70ebfd6932f49f49646b1a00355d9\flyway-core-10.21.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlin\kotlin-stdlib\2.2.20\5380b19fa1924399b62ce3a1faffebb2b4f82272\kotlin-stdlib-2.2.20.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.h2database\h2\2.3.232\4fcc05d966ccdb2812ae8b9a718f69226c0cf4e2\h2-2.3.232.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.postgresql\postgresql\42.7.7\67f8093e8d8104c74bbf588392ac3229803f5d17\postgresql-42.7.7.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.mongodb\mongodb-driver-sync\4.10.2\4d76dabbcc382614a2a9c9fba9d201c82707d3a0\mongodb-driver-sync-4.10.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.mongodb\mongodb-driver-core\4.10.2\85469d90dfd7b41d57e70f747a7928447829e12c\mongodb-driver-core-4.10.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.mongodb\bson\4.10.2\a07162adfb847cbf9c00ac74a5245d80e7306f5b\bson-4.10.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.zaxxer\HikariCP\5.1.0\8c96e36c14461fc436bb02b264b96ef3ca5dca8c\HikariCP-5.1.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.neo4j.driver\neo4j-java-driver\5.25.0\387d463fe24ad5d389ae29b993499fdbcb6ad7f2\neo4j-java-driver-5.25.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\dev.forst\ktor-openapi-generator\0.6.1\3757cee1dd738338f7fb66248b8c30e0d73f46ae\ktor-openapi-generator-0.6.1.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.apache.kafka\kafka-clients\3.7.0\b8f9f75bc3edc06f842dd16071465544198bc045\kafka-clients-3.7.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\redis.clients\jedis\5.1.0\2d0489afae48292829951cb21fecb9fffdccc22e\jedis-5.1.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlin\kotlin-reflect\2.2.10\98d0ca9819d98cb3aa5c0a25793830b6659feee2\kotlin-reflect-2.2.10.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.slf4j\slf4j-api\2.0.17\d9e58ac9c7779ba3bf8142aff6c830617a7fe60f\slf4j-api-2.0.17.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.fasterxml.jackson.core\jackson-databind\2.19.2\46509399d28f57ca32c6bb4b0d4e10e8f062051e\jackson-databind-2.19.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.fasterxml.jackson.module\jackson-module-kotlin\2.19.2\c052fdf35343bf6b4e132e75515243e0d497db64\jackson-module-kotlin-2.19.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-serialization-kotlinx-json-jvm\3.3.0\8d1c7508fef56af92e6f3987e4df926ae322ac5b\ktor-serialization-kotlinx-json-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-server-auth-jwt-jvm\3.3.0\629d9e5ae14b87dd87171171717a0ed689deda39\ktor-server-auth-jwt-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-server-auth-jvm\3.3.0\921a0f84b47e49928a1564bb9f1942b7c1706e07\ktor-server-auth-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-server-config-yaml-jvm\3.3.0\5cc02bc286904675b7daaec67e2706df1ac737fe\ktor-server-config-yaml-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-server-cors-jvm\3.3.0\b25bfd761405e43dbe3372db16f494d366588141\ktor-server-cors-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-server-netty-jvm\3.3.0\3b54f1a0d37fbe1571c2ec8358416d0cc5e7e9b3\ktor-server-netty-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-server-openapi-jvm\3.3.0\15f15ea9f8f316639ec19dac7b0c16aa6c26ee13\ktor-server-openapi-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-server-swagger-jvm\3.3.0\f642a535273e6e6995015eb8b4aa7ab72a587eb1\ktor-server-swagger-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-server-core-jvm\3.3.0\a75887ca2a0b32ddec0351f889517f74fee2143d\ktor-server-core-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.fasterxml.jackson.dataformat\jackson-dataformat-toml\2.19.2\629e52c5fbdb321d126155e0c78bd2d796f94b12\jackson-dataformat-toml-2.19.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.fasterxml.jackson.datatype\jackson-datatype-jsr310\2.19.2\72e73f048b36d9df82aef146bf8b2ae63b2e28e2\jackson-datatype-jsr310-2.19.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains\annotations\23.0.0\8cc20c07506ec18e0834947b84a864bfc094484e\annotations-23.0.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.projectreactor\reactor-core\3.6.10\6860a576ae0bd1957c5d4c87e861025248818c01\reactor-core-3.6.10.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.reactivestreams\reactive-streams\1.0.4\3864a1320d97d7b045f729a326e1e077661f31b7\reactive-streams-1.0.4.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-handler\4.2.4.Final\2743026b7e760647960c40cea3a1e8cadcaca3d3\netty-handler-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-tcnative-classes\2.0.66.Final\9588bd2f891157538a78d86c945aa34bf9308dda\netty-tcnative-classes-2.0.66.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.google.code.gson\gson\2.10.1\b3add478d4382b78ea20b1671390a858002feb6c\gson-2.10.1.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.apache.commons\commons-pool2\2.12.0\458563f69fbdaebf7daadfe10dc3a22e42a7de50\commons-pool2-2.12.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.json\json\20231013\e22e0c040fe16f04ffdb85d851d77b07fc05ea52\json-20231013.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-serialization-jvm\3.3.0\e56aab7a830a5e1b890aa8dd0a0f7b603552880\ktor-serialization-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-coroutines-core-jvm\1.10.2\4a9f78ef49483748e2c129f3d124b8fa249dafbf\kotlinx-coroutines-core-jvm-1.10.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.fasterxml.jackson.core\jackson-annotations\2.19.2\c5381f11988ae3d424b197a26087d86067b6d7d\jackson-annotations-2.19.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.fasterxml.jackson.core\jackson-core\2.19.2\50f3b4bd59b9ff51a0ed493e7b5abaf5c39709bf\jackson-core-2.19.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.auth0\java-jwt\4.5.0\d7004155fe57a107cc40fb6be0132d8ad2530613\java-jwt-4.5.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.auth0\jwks-rsa\0.23.0\76b14c3f09a1edea16856ec500a18030fa192065\jwks-rsa-0.23.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-codec-http2\4.2.4.Final\b4799709023e809dc85f93c6162b786cf31b4a21\netty-codec-http2-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-transport-native-kqueue\4.2.4.Final\228625ab1549987b9425158cfd9b2d92d3af20db\netty-transport-native-kqueue-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-transport-native-epoll\4.2.4.Final\42743a42701830a3eb093ea7e84d3d85ed123faf\netty-transport-native-epoll-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.eclipse.jetty.alpn\alpn-api\1.1.3.v20160715\a1bf3a937f91b4c953acd13e8c9552347adc2198\alpn-api-1.1.3.v20160715.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.typesafe\config\1.4.4\f19816be89ef80f9106535828ba32fd4cd8e6b77\config-1.4.4.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-codec-base\4.2.4.Final\1ce749159854c881db5f72f20554b593303d6383\netty-codec-base-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-transport-native-unix-common\4.2.4.Final\8e84d47a372fdc928a50b865380a7198a0946782\netty-transport-native-unix-common-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-transport\4.2.4.Final\dcc86deff7735fe678a9159e3ba991cc85a6870b\netty-transport-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-buffer\4.2.4.Final\ddf4e915e4c7bc227dad3166e87e65c7c267489a\netty-buffer-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-resolver\4.2.4.Final\d6104fe65ef3411f07f664220e58396cdfc64cc8\netty-resolver-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-common\4.2.4.Final\2ab161f17d7dd66a1c8ac2f180a448c314790abb\netty-common-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-serialization-kotlinx-jvm\3.3.0\f62c2f4f39c3fcddd790dccd3ae11005709e0cee\ktor-serialization-kotlinx-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-serialization-json-io-jvm\1.9.0\3a371942a591532d0d9245ca6787ee677853bebd\kotlinx-serialization-json-io-jvm-1.9.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-serialization-json-jvm\1.9.0\aea6f7d49fe5c458f8963ee6d4bdaf4a459ab3e7\kotlinx-serialization-json-jvm-1.9.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-server-sessions-jvm\3.3.0\ad43fb51bf677d7780dbe9356bad32a4c1f0617f\ktor-server-sessions-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-client-core-jvm\3.3.0\29608f1fee6d4eee03a91c04f43c2043def362f5\ktor-client-core-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\net.mamoe.yamlkt\yamlkt-jvm\0.13.0\9c93e3ef80314d6486f6f9be95db8df6bc728d67\yamlkt-jvm-0.13.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-codec-http\4.2.4.Final\4670107b2f6419d21cb7967a680671692f44157\netty-codec-http-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-transport-classes-kqueue\4.2.4.Final\b5322502fd275ccda1f57c7f4f0f660ab28818ed\netty-transport-classes-kqueue-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-transport-classes-epoll\4.2.4.Final\1bcbe4f5b2bec41c5cf04efa9074a0c717882f78\netty-transport-classes-epoll-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-http-cio-jvm\3.3.0\5107799ea75211704419342661cb4552e3fa74f7\ktor-http-cio-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-websockets-jvm\3.3.0\10743663e919fe33527367d3e43b940ae434aef1\ktor-websockets-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-http-jvm\3.3.0\8a42afc0f195c1be521ad91aa41055021fa3b94b\ktor-http-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-events-jvm\3.3.0\c8a50b2be72062ba419638034f9159ce8122cad\ktor-events-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-utils-jvm\3.3.0\2e8d26ef0c392e07b63460009776df0e7fea653e\ktor-utils-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.netty\netty-codec-compression\4.2.4.Final\1ee714313d5a4828a9a5e91ef7b286b0ae70432d\netty-codec-compression-4.2.4.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-serialization-core-jvm\1.9.0\91448df39c558f7c6147b8bd8db01debe16e0cc1\kotlinx-serialization-core-jvm-1.9.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-websocket-serialization-jvm\3.3.0\6b82e2bb17bc763dff14d07d8a0c275c27ad4bcf\ktor-websocket-serialization-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-sse-jvm\3.3.0\6f8a76ce7ffb1384108f216138db28a3b19c6144\ktor-sse-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-network-jvm\3.3.0\eeddf5465e4e0d4265a73b35da4d71bbe3a1d73e\ktor-network-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-io-jvm\3.3.0\46a30b23c1138234d63d4e7e6531dc1dd0055228\ktor-io-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-io-core-jvm\0.8.0\358a9f2ba2dc81c5dc84c3d1853f6e5efba63be1\kotlinx-io-core-jvm-0.8.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-io-bytestring-jvm\0.8.0\89c5399596250e71f2bba6d2415972a078a525c7\kotlinx-io-bytestring-jvm-0.8.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\ch.qos.logback\logback-classic\1.5.16\113979db51dfad6dc895b34460d7b7ff64ffe7d2\logback-classic-1.5.16.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\joda-time\joda-time\2.10.5\7f1d89817cd20a32444d5ab4160f035ab9b864e7\joda-time-2.10.5.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlin\kotlin-stdlib-jdk8\1.8.10\7c002ac41f547a82e81dfebd2a20577a738dbf3f\kotlin-stdlib-jdk8-1.8.10.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.reflections\reflections\0.10.2\b638d7ca0e0fe0146b60a0e7ba232ad852a73b31\reflections-0.10.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.webjars\swagger-ui\4.15.5\fc283d7a6d93c58fb466766eef4b8110c57639ea\swagger-ui-4.15.5.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.checkerframework\checker-qual\3.49.3\119a4df4ba2e6a432b23989a785f81be38a56849\checker-qual-3.49.3.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.mongodb\bson-record-codec\4.10.2\1dd602db9fd334c8438864300f8f76202820bef8\bson-record-codec-4.10.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\ch.qos.logback\logback-core\1.5.16\4f17700f046900aea2fadf115e2d67fec921f7fd\logback-core-1.5.16.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.github.luben\zstd-jni\1.5.5-6\f29e8571c4948a5e6409e9780d2f90b9170e615a\zstd-jni-1.5.5-6.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.lz4\lz4-java\1.8.0\4b986a99445e49ea5fbf5d149c4b63f6ed6c6780\lz4-java-1.8.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.xerial.snappy\snappy-java\1.1.10.5\ac605269f3598506196e469f1fb0d7ed5c55059e\snappy-java-1.1.10.5.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-server-status-pages-jvm\3.3.0\efa56e6ddcc8234ef007f136d6b43116302f8bcd\ktor-server-status-pages-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlin\kotlin-stdlib-jdk7\1.8.10\cb726a23c808a850a43e7d6b9d1ba91b02fe9f05\kotlin-stdlib-jdk7-1.8.10.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.javassist\javassist\3.28.0-GA\9a958811a88381bb159cc2f5ed79c34a45c4af7a\javassist-3.28.0-GA.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.google.code.findbugs\jsr305\3.0.2\25ea2e8b0c338a877313bd4672d3fe056ea78f0d\jsr305-3.0.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger.codegen.v3\swagger-codegen-generators\1.0.57\ee9164b617cd895be3bb7bb01150a307f0382122\swagger-codegen-generators-1.0.57.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger.codegen.v3\swagger-codegen\3.0.71\3e0fb9a3d67f0f20e0aaa3ee28a23efe002df05a\swagger-codegen-3.0.71.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger.parser.v3\swagger-parser\2.1.33\213f67a657f49e271de685a0199c3ad37011216b\swagger-parser-2.1.33.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.fusesource.jansi\jansi\2.4.2\ba7387c31622c6650b83edba1bbb115f1fe462ba\jansi-2.4.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.google.guava\guava\32.1.3-jre\f306708742ce2bf0fb0901216183bc14073feae\guava-32.1.3-jre.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.charleskorn.kaml\kaml-jvm\0.79.0\77fee41e34be3cbf6b096d48b739a6c9fe8d3ee8\kaml-jvm-0.79.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.ktor\ktor-server-html-builder-jvm\3.3.0\1da1d6a6dd4b763d707da56b829207f2f1a6d11c\ktor-server-html-builder-jvm-3.3.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.slf4j\slf4j-ext\2.0.9\35ea0a18a61242fcb7f1d3c45cdd9527a469b5eb\slf4j-ext-2.0.9.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\commons-io\commons-io\2.19.0\1f8d4a99ba72b77aa69101175efc79b0c7dcdd7e\commons-io-2.19.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.apache.commons\commons-lang3\3.17.0\b17d2136f0460dcc0d2016ceefca8723bdf4ee70\commons-lang3-3.17.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\commons-cli\commons-cli\1.9.0\e1cdfa8bf40ccbb7440b2d1232f9f45bb20a1844\commons-cli-1.9.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger\swagger-codegen\2.4.46\11e2235b4edc6cf35cfd7006358f7b782f5e2ad8\swagger-codegen-2.4.46.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger\swagger-parser\1.0.75\b3cfa71e10ecc3694124cf3165e60d7d57b51a99\swagger-parser-1.0.75.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.github.jknack\handlebars\4.3.1\95d9902e78faa2be20a40a75f33b6602b99ee246\handlebars-4.3.1.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.samskivert\jmustache\1.16\979c7145a406b83bf28da32531f88a34c2d2919c\jmustache-1.16.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger.parser.v3\swagger-parser-v2-converter\2.1.33\330d40e67bf4427728c54c9b2ffd48566276faae\swagger-parser-v2-converter-2.1.33.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger.parser.v3\swagger-parser-v3\2.1.33\7273654e8e58095ed77ad01a048d3f2acd1f02c\swagger-parser-v3-2.1.33.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.yaml\snakeyaml\2.4\e0666b825b796f85521f02360e77f4c92c5a7a07\snakeyaml-2.4.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.google.guava\failureaccess\1.0.1\1dcf1de382a0bf95a3d8b0849546c88bac1292c9\failureaccess-1.0.1.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.google.guava\listenablefuture\9999.0-empty-to-avoid-conflict-with-guava\b421526c5f297295adef1c886e5246c39d4ac629\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.google.errorprone\error_prone_annotations\2.21.1\6d9b10773b5237df178a7b3c1b4208df7d0e7f94\error_prone_annotations-2.21.1.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-coroutines-slf4j\1.10.2\1271f9d4a929150bb87ab8d1dc1e86d4bcf039f3\kotlinx-coroutines-slf4j-1.10.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.commonmark\commonmark\0.17.0\a344223d4c3b5113fa9cbbd3afa2738c138f03b\commonmark-0.17.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger\swagger-compat-spec-parser\1.0.75\d8da88b2b71287d27186754493c6f439f09f1735\swagger-compat-spec-parser-1.0.75.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger\swagger-core\1.6.16\71bce071ecf1991b30aca2838868327c1ba01d8e\swagger-core-1.6.16.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger\swagger-parser-safe-url-resolver\1.0.75\48ea19f212846fa3718d72a380b4301cf6d1d2a4\swagger-parser-safe-url-resolver-1.0.75.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger.parser.v3\swagger-parser-core\2.1.33\337145b9129ef34e842ce4575205468c4ad1aa5c\swagger-parser-core-2.1.33.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger.core.v3\swagger-models\2.2.34\66970b3f0eb4dbc9a66ead55777b4bc5ff9ad663\swagger-models-2.2.34.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger.core.v3\swagger-core\2.2.34\9563c402b0cd7b211c1ea8526cd5ec32d6a3eee9\swagger-core-2.2.34.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.fasterxml.jackson.dataformat\jackson-dataformat-yaml\2.19.2\ba1079940daa609061e46c80b72c5546c4718401\jackson-dataformat-yaml-2.19.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger.parser.v3\swagger-parser-safe-url-resolver\2.1.33\748d2a5d639e7c2da0da54342e0d5db1195a061\swagger-parser-safe-url-resolver-2.1.33.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\it.krzeminski\snakeyaml-engine-kmp-jvm\3.1.1\542190d973fb66f3568fbcec1a3a8210e2f705dc\snakeyaml-engine-kmp-jvm-3.1.1.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.squareup.okio\okio-jvm\3.12.0\a03d717896d3058293f60e71a0459d6813fbbae6\okio-jvm-3.12.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlinx\kotlinx-html-jvm\0.12.0\5848165ef07532e4b72919ac26f527c0835b7555\kotlinx-html-jvm-0.12.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.github.java-json-tools\json-patch\1.13\c8b72249e50fe778e7df223e5b1fed1931a4a688\json-patch-1.13.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.github.java-json-tools\json-schema-validator\2.2.14\10c42918adc1fd4454e83bb21365f30df497a076\json-schema-validator-2.2.14.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.apache.httpcomponents\httpclient\4.5.14\1194890e6f56ec29177673f2f12d0b8e627dec98\httpclient-4.5.14.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger\swagger-models\1.6.16\e4b8c22292aac5d0f12cd871b33fd82371ff7114\swagger-models-1.6.16.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\jakarta.xml.bind\jakarta.xml.bind-api\2.3.3\48e3b9cfc10752fba3521d6511f4165bea951801\jakarta.xml.bind-api-2.3.3.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\javax.validation\validation-api\1.1.0.Final\8613ae82954779d518631e05daa73a6a954817d5\validation-api-1.1.0.Final.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger.core.v3\swagger-annotations\2.2.34\a43fbbe9cddb63603d967433fb5c003b90969ab2\swagger-annotations-2.2.34.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\jakarta.validation\jakarta.validation-api\2.0.2\5eacc6522521f7eacb081f95cee1e231648461e7\jakarta.validation-api-2.0.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.github.java-json-tools\jackson-coreutils\2.0\6374371261b91b829d10f21256b2feefdf8f0a78\jackson-coreutils-2.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.github.java-json-tools\msg-simple\1.2\a06afa2d5d75c98e54ab370107930978fc3f9937\msg-simple-1.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.github.java-json-tools\json-schema-core\1.2.14\39d4efcf7e538684200fea15e08d47d0198c19fb\json-schema-core-1.2.14.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.github.java-json-tools\jackson-coreutils-equivalence\1.0\8b928cf1f95dc5fe6b1648f5da93befab031da19\jackson-coreutils-equivalence-1.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.sun.mail\mailapi\1.6.2\208b6439dfbe6713c384ebf54ecd62cd4423cc50\mailapi-1.6.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.googlecode.libphonenumber\libphonenumber\8.11.1\6bb6115fd5a0bf00964afec358496faea66b7db5\libphonenumber-8.11.1.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\net.sf.jopt-simple\jopt-simple\5.0.4\4fdac2fbe92dfad86aa6e9301736f6b4342a3f5c\jopt-simple-5.0.4.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.apache.httpcomponents\httpcore\4.4.16\51cf043c87253c9f58b539c9f7e44c8894223850\httpcore-4.4.16.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\commons-logging\commons-logging\1.2\4bfc12adfe4842bf07b657f0369c4cb522955686\commons-logging-1.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\commons-codec\commons-codec\1.11\3acb4705652e16236558f0f4f2192cc33c3bd189\commons-codec-1.11.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\io.swagger\swagger-annotations\1.6.16\371ecf09af06ffcb74aa821a0e380032cf75daef\swagger-annotations-1.6.16.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\jakarta.activation\jakarta.activation-api\1.2.2\99f53adba383cb1bf7c3862844488574b559621f\jakarta.activation-api-1.2.2.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\net.thauvin.erik.urlencoder\urlencoder-lib-jvm\1.6.0\6b922dd3ff960b08873c10395545e08355e250c9\urlencoder-lib-jvm-1.6.0.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.github.java-json-tools\btf\1.3\6cf5405e214cbc83337a107cdef8401fb6aa6383\btf-1.3.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\com.github.java-json-tools\uri-template\0.10\6e8cf7b04f5ed679c76f15e0b19918906d84dbc4\uri-template-0.10.jar;C:\Users\istom\.gradle\caches\modules-2\files-2.1\org.mozilla\rhino\1.7.7.2\a7c4a9ba8b6922374580d71060ef71eafa994256\rhino-1.7.7.2.jar
+Launcher Type: SUN_STANDARD
+
+[Global flags]
+     intx CICompilerCount                          = 12                                        {product} {ergonomic}
+     uint ConcGCThreads                            = 4                                         {product} {ergonomic}
+     uint G1ConcRefinementThreads                  = 15                                        {product} {ergonomic}
+   size_t G1HeapRegionSize                         = 4194304                                   {product} {ergonomic}
+    uintx GCDrainStackTargetSize                   = 64                                        {product} {ergonomic}
+   size_t InitialHeapSize                          = 532676608                                 {product} {ergonomic}
+   size_t MarkStackSize                            = 4194304                                   {product} {ergonomic}
+   size_t MaxHeapSize                              = 8522825728                                {product} {ergonomic}
+   size_t MinHeapDeltaBytes                        = 4194304                                   {product} {ergonomic}
+   size_t MinHeapSize                              = 8388608                                   {product} {ergonomic}
+    uintx NonNMethodCodeHeapSize                   = 7602480                                {pd product} {ergonomic}
+    uintx NonProfiledCodeHeapSize                  = 122027880                              {pd product} {ergonomic}
+    uintx ProfiledCodeHeapSize                     = 122027880                              {pd product} {ergonomic}
+    uintx ReservedCodeCacheSize                    = 251658240                              {pd product} {ergonomic}
+     bool SegmentedCodeCache                       = true                                      {product} {ergonomic}
+   size_t SoftMaxHeapSize                          = 8522825728                             {manageable} {ergonomic}
+     bool UseCompressedOops                        = true                           {product lp64_product} {ergonomic}
+     bool UseG1GC                                  = true                                      {product} {ergonomic}
+     bool UseLargePagesIndividualAllocation        = false                                  {pd product} {ergonomic}
+
+Logging:
+Log output configuration:
+ #0: stdout all=warning uptime,level,tags foldmultilines=false
+ #1: stderr all=off uptime,level,tags foldmultilines=false
+
+Environment Variables:
+JAVA_HOME=C:\Users\istom\.jdks\openjdk-25.0.2
+PATH=C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Git\cmd;C:\Program Files\dotnet\;C:\Program Files\nodejs\;C:\Program Files\Docker\Docker\resources\bin;C:\Users\istom\.cargo\bin;C:\Users\istom\AppData\Local\Programs\Python\Launcher\;C:\Users\istom\AppData\Local\Microsoft\WindowsApps;C:\Users\istom\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\swipl\bin;D:\IntelliJ IDEA 2025.1.2\bin;;C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\bin\Hostx64\x64;C:\Users\istom\.dotnet\tools;C:\Users\istom\AppData\Local\Google\Cloud SDK\google-cloud-sdk\bin;D:\GoLand 2025.3\bin;C:\Users\istom\AppData\Roaming\npm
+USERNAME=istom
+OS=Windows_NT
+PROCESSOR_IDENTIFIER=Intel64 Family 6 Model 183 Stepping 1, GenuineIntel
+TMP=C:\Users\istom\AppData\Local\Temp
+TEMP=C:\Users\istom\AppData\Local\Temp
+
+
+
+
+Periodic native trim disabled
+
+---------------  S Y S T E M  ---------------
+
+OS:
+ Windows 11 , 64 bit Build 26100 (10.0.26100.7920)
+OS uptime: 8 days 4:28 hours
+Hyper-V role detected
+
+CPU: total 20 (initial active 20) (10 cores per cpu, 2 threads per core) family 6 model 183 stepping 1 microcode 0x12e, cx8, cmov, fxsr, ht, mmx, 3dnowpref, sse, sse2, sse3, ssse3, sse4.1, sse4.2, popcnt, lzcnt, tsc, tscinvbit, avx, avx2, aes, erms, clmul, bmi1, bmi2, adx, sha, fma, vzeroupper, clflush, clflushopt, clwb, hv, serialize, rdtscp, rdpid, fsrm, f16c, cet_ibt, cet_ss
+Processor Information for processor 0
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 1
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 2
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 3
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 4
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 5
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 6
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 7
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 8
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 9
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 10
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 11
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 12
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 13
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 14
+  Max Mhz: 2600, Current Mhz: 1505, Mhz Limit: 2600
+Processor Information for processor 15
+  Max Mhz: 2600, Current Mhz: 1505, Mhz Limit: 2600
+Processor Information for processor 16
+  Max Mhz: 2600, Current Mhz: 1505, Mhz Limit: 2600
+Processor Information for processor 17
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 18
+  Max Mhz: 2600, Current Mhz: 1505, Mhz Limit: 2600
+Processor Information for processor 19
+  Max Mhz: 2600, Current Mhz: 1505, Mhz Limit: 2600
+
+Memory: 4k page, system-wide physical 32507M (4405M free)
+TotalPageFile size 42658M (AvailPageFile size 468M)
+current process WorkingSet (physical memory assigned to process): 13M, peak: 13M
+current process commit charge ("private bytes"): 75M, peak: 583M
+
+vm_info: OpenJDK 64-Bit Server VM (21.0.8+9-LTS) for windows-amd64 JRE (21.0.8+9-LTS), built on 2025-07-10T20:22:44Z by "MicrosoftCorporation" with unknown MS VC++:1944
+
+END.

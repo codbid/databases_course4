@@ -43,3 +43,5 @@ WITH o, collect(copy.id) AS copyIds, count(copy) AS total
 RETURN o.name AS officeName, copyIds, total
 ORDER BY total DESC
 LIMIT 5;
+
+в каком филиале чаще всего забирают зарезервированные книги

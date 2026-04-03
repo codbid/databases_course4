@@ -1,3 +1,5 @@
+version: '3.9'
+
 services:
   postgres:
     image: postgres:16
@@ -46,10 +48,10 @@ services:
       - "27018:27017"
     volumes:
       - mongo_data:/data/db
+
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter
     environment:
-      # Подключаемся к твоему первому сервису 'postgres'
       DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable"
     depends_on:
       - postgres
@@ -78,6 +80,7 @@ services:
     depends_on:
       - prometheus
 
+
   mongodb-exporter:
     image: percona/mongodb_exporter:0.40
     container_name: library_mongo_exporter
@@ -96,15 +99,15 @@ services:
     ports:
       - "6379:6379"
     restart: always
+
   neo4j:
     image: neo4j:5
     container_name: library_neo4j
     hostname: neo4j
-    # База по умолчанию: neo4j (в Community одна БД)
     ports:
-      - "7474:7474"   # Browser UI
-      - "7687:7687"   # Bolt
-      - "2000:2000"   # Prometheus (только Enterprise; Community — см. neo4j-exporter)
+      - "7474:7474"
+      - "7687:7687"
+      - "2000:2000"
     environment:
       - NEO4J_AUTH=neo4j/password
       - NEO4J_server_metrics_enabled=true
@@ -118,11 +121,11 @@ services:
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
+
       - ./neo4j/import:/var/lib/neo4j/import
       - ./neo4j/plugins:/plugins
     restart: unless-stopped
 
-  # Экспортер метрик для Neo4j Community (встроенный Prometheus только в Enterprise)
   neo4j-exporter:
     build: ./neo4j_exporter
     container_name: library_neo4j_exporter
@@ -135,80 +138,126 @@ services:
     depends_on:
       - neo4j
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: library_zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
-
   kafka1:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: library_kafka1
-    depends_on:
-      - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka1:29092,EXTERNAL://localhost:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka1
+    hostname: kafka1
     ports:
-      - "9092:9092"
+      - "9092:29092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:29092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka1:9092,EXTERNAL://localhost:9092
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+
+    volumes:
+      - kafka1-data:/var/lib/kafka/data
 
   kafka2:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: library_kafka2
-    depends_on:
-      - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 2
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka2:29092,EXTERNAL://localhost:9093
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka2
+    hostname: kafka2
     ports:
-      - "9093:9092"
+      - "9093:29092"
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:29092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka2:9092,EXTERNAL://localhost:9093
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+
+    volumes:
+      - kafka2-data:/var/lib/kafka/data
 
   kafka3:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: library_kafka3
-    depends_on:
-      - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 3
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka3:29092,EXTERNAL://localhost:9094
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka3
+    hostname: kafka3
     ports:
-      - "9094:9092"
+      - "9094:29092"
+    environment:
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: broker,controller
 
-  kafdrop:
-    image: obsidiandynamics/kafdrop:4.0.1
-    container_name: library_kafdrop
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:29092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka3:9092,EXTERNAL://localhost:9094
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+
+    volumes:
+      - kafka3-data:/var/lib/kafka/data
+
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:7.6.0
+    container_name: kafka-connect
+
+    ports:
+      - "8083:8083"
+
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka1:9092,kafka2:9092,kafka3:9092
+      CONNECT_REST_PORT: 8083
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+
+      CONNECT_GROUP_ID: connect-cluster
+      CONNECT_CONFIG_STORAGE_TOPIC: connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: connect-status
+
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
+
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
+
+    command:
+      - bash
+      - -c
+      - |
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.7.4
+        /etc/confluent/docker/run
+
     depends_on:
       - kafka1
       - kafka2
       - kafka3
-    environment:
-      # Внутри docker-сети Kafdrop должен ходить на INTERNAL-лисенеры брокеров (29092),
-      # а не на внешние порты 9092–9094, проброшенные на хост.
-      - KAFKA_BROKERCONNECT=kafka1:29092,kafka2:29092,kafka3:29092
-      - SERVER_PORT=9000
-    ports:
-      - "9000:9000"
+
 volumes:
   postgres_data:
   mongo_data:
   postgres_sub_data:
   neo4j_data:
   neo4j_logs:
+  kafka1-data:
+  kafka2-data:
+  kafka3-data:

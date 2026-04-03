@@ -11,7 +11,7 @@
       "gridPos": { "h": 2, "w": 24, "x": 0, "y": 0 },
       "id": 0,
       "options": {
-        "content": "Метрики Neo4j через **neo4j-exporter** (Neo4j Community). Графики «Скрейпы в минуту», «Длительность сбора», «Время последнего скрейпа» меняются при каждом опросе Prometheus.",
+        "content": "Neo4j Metrics.",
         "mode": "markdown"
       },
       "title": "Подсказка",

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Prometheus exporter for Neo4j Community: node/relationship counts and basic stats."""
 import os
 import time

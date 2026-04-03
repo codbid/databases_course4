@@ -13,6 +13,9 @@ import com.example.app.books.DTO.BooksCountGroupByOfficeResponse
 import com.example.app.books.DTO.BooksCountGroupByOfficeResponseRanked
 import com.example.app.books.DTO.toBookResponse
 import com.example.app.books.DTO.toResponse
+import com.example.app.kafka.EventBuilder
+import com.example.app.kafka.KafkaFactory
+import com.example.app.kafka.KafkaTopics
 import com.example.app.offices.DAO.OfficeEntity
 import com.example.app.util.toApi
 import com.example.config.DatabaseFactory
@@ -27,6 +30,7 @@ import com.mongodb.client.model.Aggregates.unwind
 import com.mongodb.client.model.Filters.eq
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.jetbrains.exposed.sql.select
@@ -114,7 +118,7 @@ object BookService {
     }
 
     suspend fun createBookCopy(bookID: Long, request: BookCopyCreateRequest): BookCopyResponse = withContext(Dispatchers.IO) {
-        transaction {
+        val result = transaction {
             val bookLinkEntity = BookLinkEntity.findById(bookID) ?: throw Exception("Book not found")
             val officeEntity = OfficeEntity.findById(request.officeID) ?: throw Exception("Office not found")
 
@@ -126,6 +130,27 @@ object BookService {
 
             return@transaction entity.toResponse()
         }
+
+        val event = EventBuilder.build(
+            "BookIssued",
+            "book-copy-${result.id}",
+            mapOf(
+                "bookCopyId" to result.id,
+                "bookId" to bookID,
+                "officeId" to request.officeID,
+                "status" to request.status
+            )
+        )
+
+        KafkaFactory.producer.send(
+            ProducerRecord(
+                KafkaTopics.BOOK_EVENTS,
+                result.id.toString(),
+                event
+            )
+        )
+
+        return@withContext result
     }
 
     suspend fun getBookCopy(copyID: Long): BookCopyResponse = withContext(Dispatchers.IO) {
@@ -641,7 +666,7 @@ object BookService {
                 )
             )
 
-            authorsCol.aggregate(pipeline).toList()
+            authorsCol.aggregate(pipeline)
         }
 
     suspend fun createBookAuthorTransactional(): Map<String, Any?> = withContext(Dispatchers.IO) {

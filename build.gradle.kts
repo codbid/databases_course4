@@ -49,7 +49,17 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson-jvm:2.3.12")
     implementation("dev.forst:ktor-openapi-generator:0.6.1")
     implementation("org.apache.kafka:kafka-clients:3.7.0")
+    implementation("org.apache.kafka:kafka-streams:3.7.0")
 
+    implementation("redis.clients:jedis:5.1.0")
+    implementation("org.neo4j.driver:neo4j-java-driver:5.23.0")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+

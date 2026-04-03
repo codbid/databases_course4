@@ -1,6 +1,9 @@
 package com.example.app.operations
 
 import com.example.app.books.DAO.BookCopyEntity
+import com.example.app.kafka.EventBuilder
+import com.example.app.kafka.KafkaFactory
+import com.example.app.kafka.KafkaTopics
 import com.example.app.operations.DAO.FineEntity
 import com.example.app.operations.DAO.LoanEntity
 import com.example.app.operations.DAO.ReservationEntity
@@ -22,6 +25,7 @@ import com.example.app.operations.DTO.toResponse
 import com.example.app.users.clients.DAO.ClientEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTime
 
@@ -65,7 +69,7 @@ object OperationService {
     }
 
     suspend fun createLoan(request: LoanCreateRequest) = withContext(Dispatchers.IO) {
-        transaction {
+        val result = transaction {
             val bookCopyEntity = BookCopyEntity.findById(request.bookCopyID) ?: throw Exception("BookCopy not found")
             val clientEntity = ClientEntity.findById(request.clientID) ?: throw Exception("Client not found")
 
@@ -79,6 +83,25 @@ object OperationService {
 
             return@transaction entity.toResponse()
         }
+
+        val event = EventBuilder.build(
+            "BookLoaned",
+            "loan-${result.id}",
+            mapOf(
+                "loanId" to result.id,
+                "bookCopyId" to request.bookCopyID,
+                "clientId" to request.clientID
+            )
+        )
+
+        KafkaFactory.producer.send(
+            ProducerRecord(
+                KafkaTopics.BOOK_EVENTS,
+                request.bookCopyID.toString(),
+                event
+            )
+        )
+        return@withContext result
     }
 
     suspend fun getLoan(id: Long): LoanResponse = withContext(Dispatchers.IO) {
@@ -110,19 +133,41 @@ object OperationService {
     }
 
     suspend fun createReservation(request: ReservationCreateRequest): ReservationResponse = withContext(Dispatchers.IO) {
-        transaction {
-            val bookCopyEntity = BookCopyEntity.findById(request.bookCopyID) ?: throw Exception("BookCopy not found")
-            val clientEntity = ClientEntity.findById(request.clientID) ?: throw Exception("Client not found")
+        val result = transaction {
+            val bookCopyEntity = BookCopyEntity.findById(request.bookCopyID)
+                ?: throw Exception("BookCopy not found")
+            val clientEntity = ClientEntity.findById(request.clientID)
+                ?: throw Exception("Client not found")
 
-            val entity = ReservationEntity.new {
+            val reservation = ReservationEntity.new {
                 bookCopy = bookCopyEntity
                 client = clientEntity
                 startDate = DateTime.now()
                 endDate = DateTime.now().plusDays(request.durationInDays)
             }
 
-            return@transaction entity.toResponse()
+            return@transaction reservation.toResponse()
         }
+
+        val event = EventBuilder.build(
+            "ReservationCreated",
+            "reservation-${result.id}",
+            mapOf(
+                "reservationId" to result.id,
+                "bookCopyId" to request.bookCopyID,
+                "clientId" to request.clientID
+            )
+        )
+
+        KafkaFactory.producer.send(
+            ProducerRecord(
+                KafkaTopics.BOOK_EVENTS,
+                request.bookCopyID.toString(),
+                event
+            )
+        )
+
+        return@withContext result
     }
 
     suspend fun getReservation(id: Long): ReservationResponse = withContext(Dispatchers.IO) {

@@ -14,6 +14,9 @@ import io.ktor.server.config.tryGetString
 import org.bson.Document
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
+import org.neo4j.driver.AuthTokens
+import org.neo4j.driver.Driver
+import org.neo4j.driver.GraphDatabase
 import java.util.concurrent.TimeUnit
 
 object DatabaseFactory {
@@ -22,6 +25,9 @@ object DatabaseFactory {
     lateinit var mongoClient: MongoClient
     lateinit var mongo: MongoDatabase
         private set
+    lateinit var neo4j: Driver
+        private set
+
 
     private val dbPostgresDriver: String by lazy { appConfig.property("db.postgres.jdbcDriver").getString() }
     private val dbPostgresUrl: String by lazy { appConfig.property("db.postgres.url").getString() }
@@ -49,16 +55,23 @@ object DatabaseFactory {
         val user = config.tryGetString("db.mongo.user")
         val password = config.tryGetString("db.mongo.password")
         val host = config.tryGetString("db.mongo.host") ?: "127.0.0.1"
-        val port = config.tryGetString("db.mongo.port") ?: "27017"
+        val port = config.tryGetString("db.mongo.port") ?: "2701"
         val maxPoolSize = config.tryGetString("db.mongo.maxPoolSize")?.toInt() ?: 20
         val databaseName = config.tryGetString("db.mongo.database.name") ?: "myDatabase"
 
-        val credentials = user?.let { userVal -> password?.let { passwordVal -> "$userVal:$passwordVal@" } }.orEmpty()
-        val uri = "mongodb://$credentials$host:$port/?maxPoolSize=$maxPoolSize&w=majority"
+//        val credentials = user?.let { userVal -> password?.let { passwordVal -> "$userVal:$passwordVal@" } }.orEmpty()
+//        val uri = "mongodb://$credentials$host:$port/?maxPoolSize=$maxPoolSize&w=majority"
+//
+//        mongoClient = MongoClients.create(uri)
+//        mongo = mongoClient.getDatabase(databaseName)
+//        mongo
+
+
+        val uri = "mongodb://$host:$port/?maxPoolSize=$maxPoolSize"
 
         mongoClient = MongoClients.create(uri)
         mongo = mongoClient.getDatabase(databaseName)
-        mongo
+
 
         app.environment.monitor.subscribe(ApplicationStopped) {
             mongoClient.close()
@@ -82,13 +95,30 @@ object DatabaseFactory {
 
     private fun mongoInit() {
         try {
-            mongo.createCollection("authors")//.createIndex(Indexes.ascending("name"), IndexOptions().unique(true))
-            mongo.createCollection("books")//.createIndex(Indexes.text("title"))
-            mongo.createCollection("books")//.createIndex(Indexes.ascending("tags"))
-            mongo.createCollection("book_authors")//.createIndex(Indexes.ascending("bookId", "authorId"))
-            //val partialOptions = IndexOptions().partialFilterExpression(Document("year", Document("\$gt", 2020)))
-            mongo.createCollection("books")//.createIndex(Indexes.ascending("year"), partialOptions)
-            mongo.createCollection("system_codes")//.createIndex(Indexes.ascending("createdAt"), IndexOptions().expireAfter(3600L, TimeUnit.SECONDS))
+            mongo.createCollection("authors")
+            mongo.createCollection("books")
+            mongo.createCollection("book_authors")
+        } catch (ignore: Exception) {}
+
+        try {
+            mongo.getCollection("authors").createIndex(Indexes.ascending("name"), IndexOptions().unique(true))
+            mongo.getCollection("books").createIndex(Indexes.text("title"))
+            mongo.getCollection("books").createIndex(Indexes.ascending("tags"))
+            mongo.getCollection("book_authors").createIndex(Indexes.ascending("bookId", "authorId"))
+            val partialOptions = IndexOptions().partialFilterExpression(Document("year", Document("\$gt", 2020)))
+            mongo.getCollection("books").createIndex(Indexes.ascending("year"), partialOptions)
         } catch (ignore: Exception) {}
     }
+
+    private fun neo4jInit(config: ApplicationConfig) {
+        val uri = config.tryGetString("db.neo4j.uri") ?: "bolt://127.0.0.1:7687"
+        val user = config.tryGetString("db.neo4j.user") ?: "neo4j"
+        val password = config.tryGetString("db.neo4j.password") ?: "password"
+
+        neo4j = GraphDatabase.driver(
+            uri,
+            AuthTokens.basic(user, password)
+        )
+    }
+
 }
