@@ -85,7 +85,7 @@ services:
     image: percona/mongodb_exporter:0.40
     container_name: library_mongo_exporter
     command:
-      - '--mongodb.uri=mongodb://test:testing@library_mongo:27017/admin?replicaSet=rs0'
+      - '--mongodb.uri=mongodb://library_mongo:27017/admin'
       - '--collect-all'
       - '--compatible-mode'
     ports:
@@ -252,6 +252,23 @@ services:
       - kafka2
       - kafka3
 
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: library_clickhouse
+    ports:
+      - "8123:8123"
+      - "9001:9000"
+    environment:
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: clickhouse
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse/init:/docker-entrypoint-initdb.d
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+
 volumes:
   postgres_data:
   mongo_data:
@@ -261,3 +278,4 @@ volumes:
   kafka1-data:
   kafka2-data:
   kafka3-data:
+  clickhouse_data:
