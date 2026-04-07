@@ -84,13 +84,24 @@ object OperationService {
             return@transaction entity.toResponse()
         }
 
+        val bookCopyContext = transaction {
+            val bookCopyEntity = BookCopyEntity.findById(request.bookCopyID) ?: throw Exception("BookCopy not found")
+            mapOf(
+                "officeId" to bookCopyEntity.office.id.value,
+                "bookId" to bookCopyEntity.bookLink.id.value
+            )
+        }
+
         val event = EventBuilder.build(
             "BookLoaned",
             "loan-${result.id}",
             mapOf(
                 "loanId" to result.id,
                 "bookCopyId" to request.bookCopyID,
-                "clientId" to request.clientID
+                "clientId" to request.clientID,
+                "officeId" to (bookCopyContext["officeId"] ?: 0L),
+                "bookId" to (bookCopyContext["bookId"] ?: 0L),
+                "status" to LoanStatus.ACTIVE.name
             )
         )
 
@@ -149,13 +160,24 @@ object OperationService {
             return@transaction reservation.toResponse()
         }
 
+        val bookCopyContext = transaction {
+            val bookCopyEntity = BookCopyEntity.findById(request.bookCopyID) ?: throw Exception("BookCopy not found")
+            mapOf(
+                "officeId" to bookCopyEntity.office.id.value,
+                "bookId" to bookCopyEntity.bookLink.id.value
+            )
+        }
+
         val event = EventBuilder.build(
             "ReservationCreated",
             "reservation-${result.id}",
             mapOf(
                 "reservationId" to result.id,
                 "bookCopyId" to request.bookCopyID,
-                "clientId" to request.clientID
+                "clientId" to request.clientID,
+                "officeId" to (bookCopyContext["officeId"] ?: 0L),
+                "bookId" to (bookCopyContext["bookId"] ?: 0L),
+                "status" to "ACTIVE"
             )
         )
 

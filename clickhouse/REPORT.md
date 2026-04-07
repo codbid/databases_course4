@@ -193,6 +193,28 @@ Fast non-interactive mode:
 python3 clickhouse/scripts/dashboard.py --summary
 ```
 
+## 9.1 Integrated UI and streaming path
+
+The project also contains an integrated web UI in the Ktor backend:
+
+- page: `/pipeline`
+- purpose: manual end-to-end verification of the event pipeline
+
+This UI shows:
+- raw Kafka topic `library.book-events`
+- Kafka Streams output topic `library.book-stats-hourly`
+- Kafka Connect sink status
+- PostgreSQL sink table populated from Kafka Connect
+- ClickHouse raw table and aggregated mart checks
+
+End-to-end path:
+
+`Library backend -> Kafka topic -> Kafka Streams -> Kafka Connect JDBC sink -> PostgreSQL`
+
+Analytics path in parallel:
+
+`Library backend -> Kafka topic -> ClickHouse Kafka engine -> raw table -> materialized view -> daily mart`
+
 ## 10. Demo scenario for defense
 
 1. Show the data flow:

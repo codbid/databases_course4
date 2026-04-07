@@ -29,8 +29,16 @@ db:
 kafka:
   # для запуска приложения на хосте (docker-compose пробрасывает 9092–9094)
   bootstrapServers: "localhost:9092,localhost:9093,localhost:9094"
-  topic: "library_events"
+  topic: "library.book-events"
   groupId: "library-consumers"
+  streams:
+    applicationId: "library-book-stats"
+
+pipeline:
+  kafkaConnectUrl: "http://localhost:8083"
+  clickhouseUrl: "http://localhost:8123"
+  clickhouseUser: "default"
+  clickhousePassword: "clickhouse"
 
 flyway:
   clean: false

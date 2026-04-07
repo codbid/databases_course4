@@ -6,6 +6,7 @@ import com.example.app.kafka.kafka
 import com.example.app.neo4j.neo4j
 import com.example.app.offices.offices
 import com.example.app.operations.operations
+import com.example.app.pipeline.pipeline
 import com.example.app.test.test
 import com.example.app.users.clients.clients
 import io.ktor.server.application.*
@@ -19,6 +20,8 @@ fun Application.configureRouting() {
         get("/") {
             call.respondText("Hello World!")
         }
+
+        pipeline()
 
         route("/api") {
             clients()

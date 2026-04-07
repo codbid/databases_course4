@@ -47,3 +47,31 @@ If the server starts successfully, you'll see the following output:
 2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
 ```
 
+## Event Pipeline UI
+
+The project now includes a unified pipeline monitoring UI at:
+
+`http://localhost:8080/pipeline`
+
+It is meant for manual verification of the full event flow:
+
+- backend event publishing into `library.book-events`
+- Kafka topic inspection
+- Kafka Streams aggregation into `library.book-stats-hourly`
+- Kafka Connect JDBC sink into PostgreSQL table `book_stats_hourly`
+- ClickHouse raw analytics and mart queries
+
+Useful commands:
+
+```bash
+docker compose up -d kafka1 kafka2 kafka3 kafka-connect clickhouse postgres mongodb neo4j redis
+./gradlew run
+./scripts/register_book_stats_connector.sh
+```
+
+After startup open the pipeline UI and:
+
+1. ensure topics exist
+2. register the connector
+3. publish a manual event
+4. confirm it appears in Kafka, PostgreSQL sink and ClickHouse
