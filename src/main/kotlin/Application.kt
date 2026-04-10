@@ -4,7 +4,6 @@ import com.example.app.kafka.consumer.AnalyticsConsumer
 import com.example.app.kafka.consumer.InventoryConsumer
 import com.example.app.kafka.streams.BookStatsStream
 import com.example.config.DatabaseFactory
-import com.example.config.KafkaFactory
 import com.example.config.Neo4jFactory
 import com.example.config.configureRouting
 import io.ktor.serialization.jackson.jackson
@@ -19,9 +18,9 @@ fun Application.module() {
     configureHTTP()
     configureSecurity()
     configureSerialization()
-    install(ContentNegotiation) { jackson() }
-    KafkaFactory.init(this)
     configureRouting()
+
+    install(ContentNegotiation) { jackson() }
     DatabaseFactory.init(this, environment.config)
     Neo4jFactory.init(environment.config, this)
 

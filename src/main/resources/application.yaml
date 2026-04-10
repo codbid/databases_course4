@@ -26,11 +26,5 @@ db:
     user: neo4j
     password: password
 
-kafka:
-  # для запуска приложения на хосте (docker-compose пробрасывает 9092–9094)
-  bootstrapServers: "localhost:9092,localhost:9093,localhost:9094"
-  topic: "library_events"
-  groupId: "library-consumers"
-
 flyway:
   clean: false
