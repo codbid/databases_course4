@@ -1,229 +1,166 @@
-# ClickHouse Analytics Subsystem
+# Подсистема аналитики на ClickHouse (интеграция с Kafka из приложения)
 
-## 1. Event types for analytics
+## 1) Типы событий, поля и бизнес-вопросы
 
-The subsystem consumes events from Kafka topic `library.book-events` produced by the main library backend.
+Формат событий соответствует `EventBuilder` и топику `library.book-events`
+(`src/main/kotlin/app/kafka/EventBuilder.kt`, `src/main/kotlin/app/kafka/KafkaTopics.kt`).
 
-### Event 1: `BookLoaned`
-- Fields:
-  - `event_id`
-  - `event_time`
-  - `office_id`
-  - `client_id`
-  - `book_id`
-  - `book_copy_id`
-  - `loan_id`
-  - `status`
-- Business questions:
-  - Which offices issue the most loans?
-  - What hours or days have peak loan activity?
-  - Which books or copies are the most востребованные?
+### Событие: `BookLoaned`
+Поля:
+- `event_id`, `event_time`, `event_type`, `entity_id`, `source`, `version`
+- `loan_id`, `book_copy_id`, `client_id`
 
-### Event 2: `ReservationCreated`
-- Fields:
-  - `event_id`
-  - `event_time`
-  - `office_id`
-  - `client_id`
-  - `book_id`
-  - `book_copy_id`
-  - `reservation_id`
-- Business questions:
-  - How many reservations convert into later loans?
-  - Which offices accumulate the most demand?
-  - How many unique users reserve books weekly?
+Бизнес-вопросы:
+- Какие клиенты берут больше всего книг?
+- Какие экземпляры чаще всего выдаются?
+- В какие дни/часы пики выдач?
 
-### Event 3: `BookIssued`
-- Fields:
-  - `event_id`
-  - `event_time`
-  - `office_id`
-  - `book_id`
-  - `book_copy_id`
-  - `status`
-- Business questions:
-  - How many physical copies enter circulation by office?
-  - Are there bursts in inventory updates?
-  - Which offices expand inventory fastest?
+### Событие: `ReservationCreated`
+Поля:
+- `event_id`, `event_time`, `event_type`, `entity_id`, `source`, `version`
+- `reservation_id`, `book_copy_id`, `client_id`
 
-## 2. Raw ClickHouse table design
+Бизнес-вопросы:
+- Как меняется спрос на бронирования по неделям?
+- Какие клиенты чаще бронируют книги?
+- Как соотносятся бронирования и выдачи по клиентам?
 
-DDL is in [01_kafka_ingest.sql](/home/nm/study/databases_course4/clickhouse/init/01_kafka_ingest.sql).
+### Событие: `BookIssued`
+Поля:
+- `event_id`, `event_time`, `event_type`, `entity_id`, `source`, `version`
+- `book_id`, `book_copy_id`, `office_id`, `status`
 
-### Why `PARTITION BY toYYYYMM(event_date)`
-- Main analytics are time-based.
-- Monthly partitioning keeps scans predictable.
-- Old partitions are easy to delete with TTL.
+Бизнес-вопросы:
+- В каких офисах чаще пополняется фонд?
+- Есть ли всплески выдачи новых экземпляров?
+- Какие экземпляры были добавлены в конкретный период?
 
-### Why `ORDER BY (event_date, event_type, office_id, client_id, book_id, event_id)`
-- Typical filters start from date range and event type.
-- Many reports drill down by office and client.
-- `event_id` in sorting key supports deduplication scenario for repeated event delivery.
+## 2) Таблица хранения в ClickHouse
 
-### Chosen storage engine
-- `ReplacingMergeTree(ingested_at)` on raw data.
-- This supports eventual deduplication of repeated events with the same sorting key and `event_id`.
+DDL: `clickhouse/init/01_events_raw.sql`
 
-## 3. Aggregated mart
+Ключевые поля:
+- время события: `event_time` + вычисляемые `event_date`, `event_week`
+- тип события: `event_type`
+- идентификаторы сущностей: `event_id`, `entity_id`, `loan_id`, `reservation_id`, `book_id`, `book_copy_id`, `client_id`, `office_id`
+- служебные поля: `ingested_at`, `source`, `version`, `payload_raw`
 
-DDL is in [02_daily_office_mart.sql](/home/nm/study/databases_course4/clickhouse/init/02_daily_office_mart.sql).
+### Пояснения к `PARTITION BY` и `ORDER BY`
+- `PARTITION BY toYYYYMM(event_date)`:
+  - аналитика в основном по времени;
+  - месячные партиции дают предсказуемые сканы;
+  - TTL удаляет устаревшие партиции без full-scan.
+- `ORDER BY (event_date, event_type, book_copy_id, client_id, event_id)`:
+  - основные фильтры идут по дате и типу события;
+  - частые разрезы по экземпляру и клиенту;
+  - `event_id` в ключе упрощает дедубликацию.
 
-### Purpose
-- Pre-aggregate per day and office:
-  - `loan_events`
-  - `reservation_events`
-  - `issued_events`
+## 3) Тестовые данные и загрузка
 
-### Example mart query
-```sql
-SELECT day, office_id, loan_events
-FROM library_analytics.daily_office_metrics
-WHERE day >= today() - 14
-ORDER BY day, office_id;
+Генератор: `clickhouse/scripts/generate_events.py`  
+Загрузчик: `clickhouse/scripts/load_events.ps1`
+
+Свойства данных:
+- >100_000 строк на запуск (по умолчанию `--count 120000`);
+- повторяющиеся `book_copy_id`, `client_id`, `office_id`;
+- дубликаты `event_id` (параметр `--duplicate-rate`);
+- всплески активности по часам;
+- распределение по нескольким неделям.
+
+Команды:
+```bash
+python3 clickhouse/scripts/generate_events.py --count 120000
+powershell -ExecutionPolicy Bypass -File clickhouse/scripts/load_events.ps1
 ```
 
-## 4. Deduplication scenario
+Подтверждение загрузки (скрипт делает запрос и выводит число строк):
+```sql
+SELECT count()
+FROM library_analytics.book_events
+WHERE source = 'library-backend';
+```
 
-### Scenario
-- Kafka can redeliver the same event more than once.
-- Synthetic generator intentionally creates duplicate `event_id`.
+## 4) Базовые аналитические запросы (8+)
 
-### SQL approach
+SQL: `clickhouse/queries/analytics.sql`
+
+Бизнес-задачи:
+1) Дневной объем событий по типам.  
+2) Топ клиентов по выдачам.  
+3) Уникальные клиенты по неделям.  
+4) Пиковые часы активности.  
+5) Самые активные экземпляры книг.  
+6) Выдача новых экземпляров по офисам.  
+7) Соотношение бронирований и выдач по клиентам.  
+8) Контроль дубликатов по `event_id`.  
+9) Тренд через агрегированную витрину.  
+10) Сравнение сырого запроса и витрины.
+
+## 5) Агрегированная витрина
+
+DDL и MV: `clickhouse/init/02_daily_event_mart.sql`
+
+Пример запроса с витриной:
+```sql
+SELECT day, event_type, office_id, sum(events) AS total_events
+FROM library_analytics.daily_event_metrics
+WHERE day >= today() - 14
+GROUP BY day, event_type, office_id
+ORDER BY day, event_type, office_id;
+```
+
+## 6) Дедубликация / обновление данных
+
+Сценарий: возможна повторная доставка событий в Kafka.  
+Решение: `ReplacingMergeTree(ingested_at)` и дедубликация по ключу.
+
 ```sql
 SELECT count(), uniqExact(event_id)
 FROM library_analytics.book_events
-WHERE source = 'synthetic-load';
+WHERE source = 'library-backend';
 
 OPTIMIZE TABLE library_analytics.book_events FINAL DEDUPLICATE;
 ```
 
-### Why this is acceptable
-- For raw append-heavy analytics data, eventual deduplication is enough.
-- It keeps ingestion simple and fast.
+## 7) TTL и политика хранения
 
-## 5. TTL / retention policy
+В `clickhouse/init/01_events_raw.sql`:
+- сырой слой: 6 месяцев.
 
-### Rules
-- Raw table: keep 6 months.
-- Daily mart: keep 12 months.
+В `clickhouse/init/02_daily_event_mart.sql`:
+- витрина: 12 месяцев.
 
-### Why
-- Detailed event-level data is needed for short and medium-term investigations.
-- Aggregated mart is cheaper and useful for longer trends.
+Причина:
+- сырые события полезны для расследований и точной аналитики;
+- агрегаты дешевле и нужны для долгих трендов.
 
-## 6. Test data
+## 8) Мини-отчет: метрики, выводы, сравнение
 
-Generator: [generate_events.py](/home/nm/study/databases_course4/clickhouse/scripts/generate_events.py)  
-Loader: [load_events.sh](/home/nm/study/databases_course4/clickhouse/scripts/load_events.sh)
+Ключевые метрики:
+- дневной объем событий по типам;
+- топ клиентов по выдачам;
+- уникальные клиенты по неделям;
+- пиковые часы активности;
+- объем BookIssued по офисам.
 
-Properties:
-- more than 100,000 rows per run;
-- repeated `client_id`, `book_id`, `office_id`;
-- duplicates by `event_id`;
-- bursts around specific hours;
-- data distributed across several weeks.
+Пример аналитических выводов (на синтетике после загрузки):
+- пики активности чаще всего в обед и вечером;
+- несколько клиентов формируют значительную долю выдач;
+- офисы с большим числом BookIssued не всегда совпадают с пиками выдач.
 
-## 7. Analytics queries
-
-Queries are collected in [analytics.sql](/home/nm/study/databases_course4/clickhouse/queries/analytics.sql).
-
-Covered operations:
-- filtering by time;
-- grouping;
-- sorting;
-- aggregate functions;
-- unique values.
-
-## 8. Mini-report
-
-### 3-5 key metrics
-- Daily event volume.
-- Top offices by loans.
-- Weekly unique clients.
-- Reservation-to-loan ratio.
-- Peak hours of usage.
-
-### Example findings on generated data
-- Offices with the highest reservation flow are not always leaders by loans.
-- Peak activity concentrates near lunchtime and evening.
-- Duplicate events are visible in raw ingestion and can be controlled by dedup queries.
-
-### Raw vs mart comparison
-- Raw:
+Сравнение сырого запроса и витрины:
 ```sql
-SELECT event_date, countIf(event_type = 'BookLoaned')
+SELECT event_date, countIf(event_type = 'BookIssued') AS raw_issued
 FROM library_analytics.book_events
-WHERE office_id = 3
+WHERE event_date >= today() - 30
 GROUP BY event_date
 ORDER BY event_date;
 ```
 
-- Mart:
 ```sql
-SELECT day, sum(loan_events)
-FROM library_analytics.daily_office_metrics
-WHERE office_id = 3
+SELECT day, sumIf(events, event_type = 'BookIssued') AS mart_issued
+FROM library_analytics.daily_event_metrics
+WHERE day >= today() - 30
 GROUP BY day
 ORDER BY day;
 ```
-
-The mart query is simpler and scans fewer rows because aggregation is computed during ingestion.
-
-## 9. Console demo / visual
-
-For a live console demo there is a small terminal dashboard:
-
-- Script: [dashboard.py](/home/nm/study/databases_course4/clickhouse/scripts/dashboard.py)
-- Run:
-```bash
-python3 clickhouse/scripts/dashboard.py
-```
-
-The dashboard shows:
-- overview metrics;
-- event mix by type;
-- top offices from the mart;
-- peak hours;
-- raw vs mart comparison;
-- duplicate control query;
-- custom SQL execution.
-
-Fast non-interactive mode:
-```bash
-python3 clickhouse/scripts/dashboard.py --summary
-```
-
-## 10. Demo scenario for defense
-
-1. Show the data flow:
-`Ktor -> Kafka -> ClickHouse raw table -> materialized view -> daily mart`
-
-2. Show raw DDL:
-- [01_kafka_ingest.sql](/home/nm/study/databases_course4/clickhouse/init/01_kafka_ingest.sql)
-
-3. Show aggregated mart:
-- [02_daily_office_mart.sql](/home/nm/study/databases_course4/clickhouse/init/02_daily_office_mart.sql)
-
-4. Show generator and bulk load:
-- [generate_events.py](/home/nm/study/databases_course4/clickhouse/scripts/generate_events.py)
-- [load_events.sh](/home/nm/study/databases_course4/clickhouse/scripts/load_events.sh)
-
-5. Open the dashboard and demonstrate:
-- total events and weeks covered;
-- distribution of event types;
-- top offices by loans;
-- raw vs mart for office `3`.
-
-## 11. Short oral explanation
-
-### Architecture
-- Backend produces business events into Kafka.
-- ClickHouse reads the Kafka topic directly through `Kafka` engine.
-- Raw events are stored in `ReplacingMergeTree`.
-- Aggregated daily metrics are built by materialized view into a `SummingMergeTree` mart.
-
-### Why this is “good”
-- It is part of the same project, not a separate toy example.
-- There is a real event flow from backend to analytics storage.
-- There is both raw storage and a ready mart for reports.
-- There is retention policy, synthetic load, and console demo.

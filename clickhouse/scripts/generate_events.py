@@ -7,6 +7,7 @@ import random
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from uuid import uuid4
 
 
 @dataclass(frozen=True)
@@ -32,12 +33,10 @@ def bursty_timestamp(base_start: datetime) -> datetime:
     day_offset = random.randint(0, 41)
     ts = base_start + timedelta(days=day_offset)
 
-    # Two synthetic peaks: lunchtime and evening.
     burst_hour = random.choices([10, 13, 18, 21], weights=[15, 40, 35, 10], k=1)[0]
     minute = random.randint(0, 59)
     second = random.randint(0, 59)
 
-    # Add occasional weekend dip / weekday bias.
     if ts.weekday() >= 5 and random.random() < 0.35:
         burst_hour = random.choice([11, 12, 14])
 
@@ -46,37 +45,37 @@ def bursty_timestamp(base_start: datetime) -> datetime:
 
 def build_event(index: int, base_start: datetime) -> dict:
     event_type = weighted_event_type()
-    office_id = random.randint(1, 12)
+    book_copy_id = random.randint(1, 7000)
     client_id = random.randint(1, 6000)
     book_id = random.randint(1, 2500)
-    book_copy_id = random.randint(1, 7000)
+    office_id = random.randint(1, 12)
     timestamp = bursty_timestamp(base_start).isoformat().replace("+00:00", "Z")
 
-    payload = {
-        "bookId": book_id,
+    payload: dict[str, int | str] = {
         "bookCopyId": book_copy_id,
-        "clientId": client_id,
-        "officeId": office_id,
-        "status": "ACTIVE",
     }
 
     entity_prefix = "event"
     if event_type == "BookLoaned":
         payload["loanId"] = index
+        payload["clientId"] = client_id
         entity_prefix = "loan"
     elif event_type == "ReservationCreated":
         payload["reservationId"] = index
+        payload["clientId"] = client_id
         entity_prefix = "reservation"
     else:
         payload["bookId"] = book_id
+        payload["officeId"] = office_id
+        payload["status"] = random.choice(["AVAILABLE", "UNAVAILABLE", "IN_REPAIR"])
         entity_prefix = "book-copy"
 
     return {
-        "eventId": f"synthetic-{index}",
+        "eventId": str(uuid4()),
         "eventType": event_type,
         "entityId": f"{entity_prefix}-{index}",
         "timestamp": timestamp,
-        "source": "synthetic-load",
+        "source": "library-backend",
         "version": 1,
         "payload": payload,
     }
@@ -93,7 +92,6 @@ def generate_events(count: int, duplicate_rate: float) -> list[dict]:
 
         if random.random() < duplicate_rate:
             duplicate = json.loads(json.dumps(event))
-            duplicate["timestamp"] = event["timestamp"]
             events.append(duplicate)
 
     random.shuffle(events)
@@ -101,9 +99,9 @@ def generate_events(count: int, duplicate_rate: float) -> list[dict]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate synthetic Kafka events for ClickHouse analytics.")
-    parser.add_argument("--count", type=int, default=120000, help="Base number of unique events to generate.")
-    parser.add_argument("--duplicate-rate", type=float, default=0.01, help="Fraction of duplicate eventIds.")
+    parser = argparse.ArgumentParser(description="Generate Kafka events aligned with EventBuilder schema.")
+    parser.add_argument("--count", type=int, default=120000, help="Base number of unique events.")
+    parser.add_argument("--duplicate-rate", type=float, default=0.01, help="Fraction of duplicate events.")
     parser.add_argument("--output", type=Path, default=Path("clickhouse/data/book_events.ndjson"))
     args = parser.parse_args()
 
